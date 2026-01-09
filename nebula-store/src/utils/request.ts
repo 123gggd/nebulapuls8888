@@ -2,15 +2,20 @@ import axios, { type InternalAxiosRequestConfig, type AxiosResponse } from 'axio
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import router from '@/router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 
 const service = axios.create({
     baseURL: '/api', // Vite 代理地址
     timeout: 10000
 })
 
+NProgress.configure({ showSpinner: false })
+
 // 请求拦截器
 service.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+        NProgress.start()
         // 在函数内部获取 store，确保 pinia 已安装
         const userStore = useUserStore()
         if (userStore.token) {
@@ -18,12 +23,16 @@ service.interceptors.request.use(
         }
         return config
     },
-    (error: any) => Promise.reject(error)
+    (error: any) => {
+        NProgress.done()
+        return Promise.reject(error)
+    }
 )
 
 // 响应拦截器
 service.interceptors.response.use(
     (response: AxiosResponse) => {
+        NProgress.done()
         // 后端标准响应结构: { code: 200, msg: 'success', data: ... }
         const res = response.data
 
@@ -40,6 +49,7 @@ service.interceptors.response.use(
         }
     },
     (error: any) => {
+        NProgress.done()
         const userStore = useUserStore()
         const { response } = error
 

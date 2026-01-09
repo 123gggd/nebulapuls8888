@@ -4,6 +4,7 @@
     <div class="sidebar-container">
       <div class="logo-container">
         <!-- 请替换为您的 Logo -->
+        <div class="logo-badge">N</div>
         <h1 class="logo-text" v-if="!isCollapse">Nebula Admin</h1>
       </div>
       <el-scrollbar>
@@ -138,24 +139,43 @@ const handleCommand = (command: string) => {
   width: 100%;
   height: 100vh;
   overflow: hidden;
+  background: #eef1f6;
 }
 
 /* 侧边栏样式 */
 .sidebar-container {
   width: 210px;
-  background-color: #304156;
+  background: linear-gradient(180deg, #2a3142 0%, #1f2533 100%);
   height: 100%;
   transition: width 0.28s;
   display: flex;
   flex-direction: column;
+  box-shadow: 6px 0 20px rgba(15, 23, 42, 0.15);
 }
 
 .logo-container {
   height: 50px;
   line-height: 50px;
-  background: #2b2f3a;
+  background: rgba(15, 23, 42, 0.4);
   text-align: center;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.logo-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #409EFF, #36cfc9);
+  color: #fff;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 12px rgba(64, 158, 255, 0.25);
 }
 
 .logo-text {
@@ -164,6 +184,7 @@ const handleCommand = (command: string) => {
   font-size: 18px;
   margin: 0;
   font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
+  letter-spacing: 0.4px;
 }
 
 /* 主体容器 */
@@ -172,16 +193,17 @@ const handleCommand = (command: string) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #f0f2f5;
+  background: linear-gradient(180deg, #f7f9fc 0%, #eef1f6 100%);
 }
 
 /* 顶部导航栏样式 */
 .navbar {
-  height: 50px;
+  height: 56px;
   overflow: hidden;
   position: relative;
-  background: #fff;
-  box-shadow: 0 1px 4px rgba(0,21,41,.08);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -197,11 +219,14 @@ const handleCommand = (command: string) => {
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 0 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 .avatar-wrapper:hover {
-  background: rgba(0,0,0,.025);
+  background: rgba(64, 158, 255, 0.08);
+  box-shadow: 0 6px 16px rgba(64, 158, 255, 0.15);
 }
 
 .user-name {
@@ -213,23 +238,23 @@ const handleCommand = (command: string) => {
 /* 内容区域 */
 .app-main {
   flex: 1;
-  padding: 20px;
+  padding: 24px;
   overflow-y: auto;
 }
 
 /* 动画 */
 .fade-transform-leave-active,
 .fade-transform-enter-active {
-  transition: all .5s;
+  transition: all .35s ease;
 }
 
 .fade-transform-enter-from {
   opacity: 0;
-  transform: translateX(-30px);
+  transform: translateY(10px);
 }
 
 .fade-transform-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: translateY(-10px);
 }
 </style>

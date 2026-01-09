@@ -5,7 +5,7 @@
       <el-breadcrumb separator="/" class="breadcrumb">
         <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
         <el-breadcrumb-item :to="{ path: '/search' }">商品列表</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ product.name }}</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ product.name || '商品详情' }}</el-breadcrumb-item>
       </el-breadcrumb>
 
       <el-card shadow="never" v-loading="loading" class="main-card">
@@ -13,13 +13,25 @@
           <!-- 左侧图片 -->
           <div class="left-gallery">
             <el-image
-                v-if="product.mainImage"
-                :src="product.mainImage"
-                class="main-image"
-                fit="cover"
-                :preview-src-list="[product.mainImage]"
+              v-if="activeImage"
+              :src="activeImage"
+              class="main-image"
+              fit="cover"
+              :preview-src-list="galleryImages"
             />
             <div v-else class="image-placeholder">暂无图片</div>
+
+            <div class="thumb-list" v-if="galleryImages.length > 1">
+              <div
+                v-for="(img, index) in galleryImages"
+                :key="img + index"
+                class="thumb-item"
+                :class="{ active: activeImage === img }"
+                @click="activeImage = img"
+              >
+                <img :src="img" alt="thumbnail" />
+              </div>
+            </div>
           </div>
 
           <!-- 右侧信息 -->
@@ -27,11 +39,18 @@
             <h1 class="title">{{ product.name }}</h1>
             <p class="subtitle">{{ product.subtitle || '暂无详细描述' }}</p>
 
+            <div class="service-tags">
+              <span>官方正品</span>
+              <span>极速发货</span>
+              <span>7 天无忧退换</span>
+            </div>
+
             <div class="price-box">
               <span class="label">价格</span>
               <div class="price-wrap">
                 <span class="currency">¥</span>
                 <span class="price">{{ product.price }}</span>
+                <span class="origin" v-if="product.originalPrice">¥{{ product.originalPrice }}</span>
               </div>
             </div>
 
@@ -56,21 +75,24 @@
               <div class="quantity-box">
                 <span class="label">数量</span>
                 <el-input-number
-                    v-model="quantity"
-                    :min="1"
-                    :max="product.stock"
-                    size="large"
+                  v-model="quantity"
+                  :min="1"
+                  :max="product.stock"
+                  size="large"
                 />
               </div>
 
               <div class="btn-group">
-                <!-- [修复] 使用 :icon 绑定，解决未使用导入报错 -->
                 <el-button type="primary" size="large" :icon="ShoppingCart" @click="handleAddToCart">
                   加入购物车
                 </el-button>
-                <el-button type="danger" plain size="large" :icon="Wallet">
+                <el-button type="danger" plain size="large" :icon="Wallet" @click="handleBuyNow">
                   立即购买
                 </el-button>
+              </div>
+
+              <div class="tip-row">
+                <span>24 小时内发货 · 支持开具电子发票</span>
               </div>
             </div>
           </div>
@@ -131,6 +153,8 @@ interface ProductDetail {
   stock: number
   sale?: number
   description?: string
+  originalPrice?: number
+  subImages?: string[]
   [key: string]: any
 }
 
@@ -150,12 +174,13 @@ const userStore = useUserStore()
 
 const loading = ref(false)
 const reviewsLoading = ref(false)
-// [修复] 应用接口类型
 const product = ref<ProductDetail>({} as ProductDetail)
 const reviews = ref<ReviewItem[]>([])
 const totalReviews = ref(0)
 const quantity = ref(1)
 const activeTab = ref('detail')
+const galleryImages = ref<string[]>([])
+const activeImage = ref('')
 
 const loadData = async () => {
   const id = Number(route.params.id)
@@ -165,6 +190,8 @@ const loadData = async () => {
   try {
     const res: any = await getProductDetail(id)
     product.value = res
+    galleryImages.value = [res.mainImage, ...(res.subImages || [])].filter(Boolean)
+    activeImage.value = galleryImages.value[0] || ''
     loadReviews(id)
   } catch (error) {
     console.error(error)
@@ -206,6 +233,20 @@ const handleAddToCart = async () => {
   }
 }
 
+const handleBuyNow = async () => {
+  if (!userStore.token) {
+    ElMessage.warning('请先登录后操作')
+    router.push(`/login?redirect=${route.fullPath}`)
+    return
+  }
+  try {
+    await addToCart({ productId: product.value.id, quantity: quantity.value })
+    router.push('/cart')
+  } catch (e) {
+    // 错误已由 request.ts 处理
+  }
+}
+
 onMounted(() => {
   loadData()
 })
@@ -220,7 +261,7 @@ watch(() => route.params.id, (newId) => {
 
 <style scoped lang="scss">
 .product-detail-page {
-  padding: 20px 0;
+  padding: 20px 0 60px;
   background: #f5f7fa;
   min-height: 80vh;
 }
@@ -234,28 +275,46 @@ watch(() => route.params.id, (newId) => {
 }
 .main-card {
   margin-bottom: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
 }
 .product-container {
   display: flex;
   gap: 40px;
 }
 .left-gallery {
-  width: 400px;
+  width: 420px;
   .main-image {
     width: 100%;
-    height: 400px;
-    border-radius: 4px;
+    height: 420px;
+    border-radius: 12px;
     border: 1px solid #eee;
   }
   .image-placeholder {
     width: 100%;
-    height: 400px;
+    height: 420px;
     background: #f0f2f5;
     display: flex;
     align-items: center;
     justify-content: center;
     color: #909399;
+  }
+  .thumb-list {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .thumb-item {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 2px solid transparent;
+    cursor: pointer;
+    img { width: 100%; height: 100%; object-fit: cover; }
+    &.active {
+      border-color: #409EFF;
+      box-shadow: 0 6px 14px rgba(64, 158, 255, 0.2);
+    }
   }
 }
 .right-info {
@@ -272,10 +331,22 @@ watch(() => route.params.id, (newId) => {
     font-size: 14px;
     line-height: 1.5;
   }
+  .service-tags {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    span {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 999px;
+    }
+  }
   .price-box {
     background: #fff5f5;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 12px;
     margin-bottom: 25px;
     display: flex;
     align-items: baseline;
@@ -284,8 +355,12 @@ watch(() => route.params.id, (newId) => {
     .price-wrap {
       color: #f56c6c;
       font-weight: bold;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
       .currency { font-size: 16px; margin-right: 2px; }
       .price { font-size: 32px; }
+      .origin { font-size: 14px; color: #94a3b8; text-decoration: line-through; }
     }
   }
   .meta-info {
@@ -311,11 +386,16 @@ watch(() => route.params.id, (newId) => {
       display: flex;
       gap: 15px;
     }
+    .tip-row {
+      margin-top: 16px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
   }
 }
 .detail-content {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   min-height: 400px;
   .product-desc {
     padding: 20px;

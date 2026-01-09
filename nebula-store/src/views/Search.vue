@@ -1,6 +1,18 @@
 <template>
   <div class="search-page">
     <div class="container">
+      <div class="search-hero">
+        <div class="search-title">
+          <h2>为你精选好物</h2>
+          <p v-if="keyword">关键词：<span class="highlight">{{ keyword }}</span></p>
+          <p v-else>探索更多灵感好物</p>
+        </div>
+        <div class="search-meta">
+          <span>共找到 <strong>{{ total }}</strong> 件商品</span>
+          <span class="muted">更新于 {{ lastUpdated }}</span>
+        </div>
+      </div>
+
       <!-- 顶部过滤栏 -->
       <div class="filter-bar">
         <!-- 分类筛选 -->
@@ -8,16 +20,16 @@
           <span class="label">分类：</span>
           <div class="options">
             <span
-                class="option-item"
-                :class="{ active: !categoryId }"
-                @click="handleCategory(undefined)"
+              class="option-item"
+              :class="{ active: !categoryId }"
+              @click="handleCategory(undefined)"
             >全部</span>
             <span
-                v-for="cat in categoryList"
-                :key="cat.id"
-                class="option-item"
-                :class="{ active: categoryId === cat.id }"
-                @click="handleCategory(cat.id)"
+              v-for="cat in categoryList"
+              :key="cat.id"
+              class="option-item"
+              :class="{ active: categoryId === cat.id }"
+              @click="handleCategory(cat.id)"
             >
               {{ cat.name }}
             </span>
@@ -31,19 +43,19 @@
           <div class="sort-options">
             <span class="label">排序：</span>
             <span
-                class="sort-item"
-                :class="{ active: sortType === 'default' }"
-                @click="handleSort('default')"
+              class="sort-item"
+              :class="{ active: sortType === 'default' }"
+              @click="handleSort('default')"
             >综合</span>
             <span
-                class="sort-item"
-                :class="{ active: sortType === 'sale' }"
-                @click="handleSort('sale')"
+              class="sort-item"
+              :class="{ active: sortType === 'sale' }"
+              @click="handleSort('sale')"
             >销量</span>
             <span
-                class="sort-item price-sort"
-                :class="{ active: sortType === 'price' }"
-                @click="handleSort('price')"
+              class="sort-item price-sort"
+              :class="{ active: sortType === 'price' }"
+              @click="handleSort('price')"
             >
               价格
               <el-icon v-if="sortOrder === 'asc' && sortType === 'price'"><CaretTop /></el-icon>
@@ -51,20 +63,21 @@
               <el-icon v-else><DArrowRight style="transform: rotate(90deg)" /></el-icon>
             </span>
           </div>
-          <div class="result-count">
-            共找到 <b>{{ total }}</b> 件商品
+          <div class="active-filters" v-if="keyword || categoryId">
+            <span class="tag" v-if="keyword">关键词：{{ keyword }}</span>
+            <span class="tag" v-if="categoryName">分类：{{ categoryName }}</span>
+            <el-button link type="primary" size="small" @click="resetFilters">清空筛选</el-button>
           </div>
         </div>
       </div>
 
       <!-- 商品列表 -->
-      <div class="product-grid" v-loading="loading">
-        <!-- [修复] 使用 router.push -->
+      <div class="product-grid" v-if="!loading">
         <div
-            v-for="item in productList"
-            :key="item.id"
-            class="product-item"
-            @click="router.push(`/product/${item.id}`)"
+          v-for="item in productList"
+          :key="item.id"
+          class="product-item"
+          @click="router.push(`/product/${item.id}`)"
         >
           <div class="img-box">
             <el-image :src="item.mainImage" fit="cover" lazy>
@@ -82,19 +95,41 @@
           </div>
         </div>
       </div>
+      <div class="product-grid" v-else>
+        <el-skeleton v-for="item in 8" :key="item" animated class="product-skeleton">
+          <template #template>
+            <div class="skeleton-card"></div>
+          </template>
+        </el-skeleton>
+      </div>
 
       <!-- 空状态 -->
-      <el-empty v-if="!loading && productList.length === 0" description="未找到相关商品，换个词试试？" />
+      <el-empty v-if="!loading && productList.length === 0" description="未找到相关商品，换个词试试？" class="empty-state">
+        <template #image>
+          <svg viewBox="0 0 220 160" aria-hidden="true" class="empty-illustration">
+            <defs>
+              <linearGradient id="searchGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stop-color="#34d399" />
+                <stop offset="100%" stop-color="#60a5fa" />
+              </linearGradient>
+            </defs>
+            <rect x="20" y="24" width="180" height="112" rx="18" fill="#ecfeff" />
+            <circle cx="95" cy="82" r="28" fill="url(#searchGradient)" opacity="0.9" />
+            <path d="M122 102l26 22" stroke="#64748b" stroke-width="8" stroke-linecap="round" />
+          </svg>
+        </template>
+        <el-button type="primary" @click="router.push('/')">去首页逛逛</el-button>
+      </el-empty>
 
       <!-- 分页 -->
       <div class="pagination-box" v-if="total > 0">
         <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="total"
-            :page-size="pageSize"
-            v-model:current-page="currentPage"
-            @current-change="handlePageChange"
+          background
+          layout="prev, pager, next"
+          :total="total"
+          :page-size="pageSize"
+          v-model:current-page="currentPage"
+          @current-change="handlePageChange"
         />
       </div>
     </div>
@@ -102,7 +137,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { searchProducts, getCategoryList } from '@/api/store'
 import { CaretTop, CaretBottom, DArrowRight } from '@element-plus/icons-vue'
@@ -136,6 +171,12 @@ const keyword = ref('')
 const categoryId = ref<number | undefined>(undefined)
 const sortType = ref('default')
 const sortOrder = ref('')
+const lastUpdated = ref('')
+
+const categoryName = computed(() => {
+  if (!categoryId.value) return ''
+  return categoryList.value.find((item) => item.id === categoryId.value)?.name || ''
+})
 
 const loadCategories = async () => {
   try {
@@ -167,6 +208,7 @@ const doSearch = async () => {
     const res: any = await searchProducts(params)
     productList.value = res.records || res.data || []
     total.value = res.total || 0
+    lastUpdated.value = new Date().toLocaleTimeString()
   } catch (error) {
     console.error(error)
   } finally {
@@ -208,6 +250,16 @@ const handlePageChange = (val: number) => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
+const resetFilters = () => {
+  keyword.value = ''
+  categoryId.value = undefined
+  sortType.value = 'default'
+  sortOrder.value = ''
+  currentPage.value = 1
+  router.replace({ path: '/search' })
+  doSearch()
+}
+
 watch(() => route.query.keyword, (newVal) => {
   keyword.value = (newVal as string) || ''
   currentPage.value = 1
@@ -223,7 +275,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .search-page {
-  padding: 20px 0;
+  padding: 20px 0 60px;
   background: #f5f7fa;
   min-height: 100vh;
 }
@@ -231,10 +283,30 @@ onMounted(() => {
   width: 1200px;
   margin: 0 auto;
 }
+.search-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  background: #fff;
+  padding: 20px 24px;
+  border-radius: 14px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.05);
+  .search-title {
+    h2 { margin: 0; font-size: 22px; color: #0f172a; }
+    p { margin: 6px 0 0; color: #64748b; }
+    .highlight { color: #2563eb; font-weight: 600; }
+  }
+  .search-meta {
+    text-align: right;
+    strong { color: #ef4444; font-size: 18px; }
+    .muted { display: block; margin-top: 4px; font-size: 12px; color: #94a3b8; }
+  }
+}
 .filter-bar {
   background: #fff;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   margin-bottom: 20px;
   border: 1px solid #ebeef5;
 
@@ -246,13 +318,14 @@ onMounted(() => {
       flex: 1;
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
+      gap: 12px;
       .option-item {
         cursor: pointer;
         color: #666;
         font-size: 14px;
-        padding: 2px 8px;
-        border-radius: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: #f1f5f9;
         &:hover { color: #409EFF; }
         &.active { color: #fff; background: #409EFF; font-weight: 500; }
       }
@@ -279,10 +352,17 @@ onMounted(() => {
         &.active { font-weight: bold; }
       }
     }
-    .result-count {
-      font-size: 12px;
-      color: #999;
-      b { color: #f56c6c; margin: 0 4px; }
+    .active-filters {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .tag {
+        background: #fef2f2;
+        color: #ef4444;
+        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
     }
   }
 }
@@ -295,7 +375,7 @@ onMounted(() => {
 
 .product-item {
   background: #fff;
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   transition: all 0.3s;
   cursor: pointer;
@@ -316,7 +396,7 @@ onMounted(() => {
   }
 
   .info {
-    padding: 12px;
+    padding: 14px;
     .name {
       font-size: 14px;
       color: #303133;
@@ -336,6 +416,21 @@ onMounted(() => {
       .sales { font-size: 12px; color: #999; }
     }
   }
+}
+
+.product-skeleton {
+  border-radius: 12px;
+}
+
+.skeleton-card {
+  height: 320px;
+  border-radius: 12px;
+  background: #e2e8f0;
+}
+
+.empty-state {
+  padding: 30px 0;
+  .empty-illustration { width: 180px; height: auto; margin-bottom: 10px; }
 }
 
 .pagination-box {

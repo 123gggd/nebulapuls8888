@@ -41,6 +41,25 @@
         <el-tab-pane label="已完成" name="3"></el-tab-pane>
       </el-tabs>
 
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="label">待支付</div>
+          <div class="value">{{ statusStats.pending }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="label">待发货</div>
+          <div class="value">{{ statusStats.toDeliver }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="label">售后中</div>
+          <div class="value">{{ statusStats.refunding }}</div>
+        </div>
+        <div class="stat-item">
+          <div class="label">已完成</div>
+          <div class="value">{{ statusStats.completed }}</div>
+        </div>
+      </div>
+
       <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%">
         <el-table-column prop="orderNo" label="订单号" width="180" show-overflow-tooltip />
 
@@ -85,6 +104,8 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <el-empty v-if="!loading && tableData.length === 0" description="暂无订单数据" />
 
       <!-- 分页 -->
       <div style="margin-top: 20px; text-align: right;">
@@ -214,7 +235,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getOrderList, getOrderDetail, deliverOrder, auditRefund } from '@/api/order'
 
@@ -241,6 +262,17 @@ const loadData = async () => {
     loading.value = false
   }
 }
+
+const statusStats = computed(() => {
+  const stats = { pending: 0, toDeliver: 0, refunding: 0, completed: 0 }
+  tableData.value.forEach((order: any) => {
+    if (order.status === 0) stats.pending += 1
+    if (order.status === 1) stats.toDeliver += 1
+    if (order.status === 5) stats.refunding += 1
+    if (order.status === 3) stats.completed += 1
+  })
+  return stats
+})
 
 const handleSearch = () => { queryParams.page = 1; loadData() }
 const resetQuery = () => { queryParams.orderNo = ''; queryParams.status = null; activeTab.value = '-1'; handleSearch() }
@@ -341,5 +373,29 @@ onMounted(loadData)
 <style scoped>
 .detail-container {
   padding: 10px;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 16px;
+  .label {
+    font-size: 12px;
+    color: #94a3b8;
+    margin-bottom: 6px;
+  }
+  .value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #0f172a;
+  }
 }
 </style>

@@ -4,7 +4,10 @@
       <div class="container nav-content">
         <!-- Logo -->
         <div class="logo" @click="$router.push('/')">
-          <el-icon class="icon"><Goods /></el-icon> Nebula Store
+          <span class="logo-mark">
+            <el-icon class="icon"><Goods /></el-icon>
+          </span>
+          <span class="logo-text">Nebula Store</span>
         </div>
 
         <!-- 搜索框 -->
@@ -60,7 +63,7 @@
     <div class="container main-content">
       <!-- 路由占位符，添加 key 确保路由参数变化时组件刷新 -->
       <router-view v-slot="{ Component }">
-        <transition name="fade" mode="out-in">
+        <transition name="fade-slide" mode="out-in">
           <component :is="Component" :key="$route.fullPath" />
         </transition>
       </router-view>
@@ -104,17 +107,19 @@ const handleLogout = () => {
 <style scoped lang="scss">
 .store-layout {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background: linear-gradient(180deg, #f7faff 0%, #f5f7fa 40%, #f1f4f8 100%);
   display: flex;
   flex-direction: column;
 }
 .nav-bar {
-  background: white;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-  height: 64px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+  height: 68px;
   position: sticky;
   top: 0;
   z-index: 100;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8);
 }
 .container {
   width: 1200px;
@@ -138,11 +143,35 @@ const handleLogout = () => {
   align-items: center;
   gap: 8px;
   margin-right: 40px;
-  .icon { color: #409EFF; }
+  transition: transform 0.2s ease;
+  &:hover { transform: translateY(-1px); }
+  .logo-mark {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #409EFF, #36cfc9);
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 14px rgba(64, 158, 255, 0.25);
+  }
+  .icon { color: #fff; }
+  .logo-text { letter-spacing: 0.3px; }
 }
 .search-box {
   flex: 1;
   max-width: 400px;
+  margin-right: 20px;
+  :deep(.el-input__wrapper) {
+    border-radius: 999px;
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  :deep(.el-input__wrapper.is-focus) {
+    box-shadow: 0 10px 26px rgba(64, 158, 255, 0.25);
+    transform: translateY(-1px);
+  }
   .search-input :deep(.el-input-group__append) {
     background-color: #409EFF;
     color: white;
@@ -162,22 +191,47 @@ const handleLogout = () => {
   color: #606266;
   font-size: 16px;
   font-weight: 500;
-  padding-bottom: 4px;
-  border-bottom: 2px solid transparent;
-  transition: all 0.3s;
+  padding: 8px 0;
+  position: relative;
+  transition: color 0.2s ease;
 
-  &:hover { color: #409EFF; }
+  &:after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -6px;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #409EFF, #36cfc9);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    color: #409EFF;
+    &:after { transform: scaleX(1); }
+  }
 
   // 激活状态
   &.router-link-active, &.active {
     color: #409EFF;
-    border-bottom-color: #409EFF;
+    &:after { transform: scaleX(1); }
   }
 }
 .user-actions {
   margin-left: 20px;
   display: flex;
   align-items: center;
+  :deep(.el-button) {
+    box-shadow: 0 6px 14px rgba(64, 158, 255, 0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  :deep(.el-button:hover) {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(64, 158, 255, 0.28);
+  }
   .el-dropdown-link {
     cursor: pointer;
     display: flex;
@@ -189,25 +243,26 @@ const handleLogout = () => {
 }
 .main-content {
   flex: 1;
-  padding: 30px 0;
+  padding: 36px 0 60px;
   width: 1200px; /* 确保内容区也是定宽居中 */
   margin: 0 auto;
 }
 .footer {
-  background: #2b323c;
-  color: #909399;
+  background: linear-gradient(90deg, #1f2a44, #2b323c);
+  color: #cbd5f5;
   text-align: center;
-  padding: 30px;
+  padding: 34px;
   margin-top: auto;
 }
 
-/* 简单的淡入淡出过渡 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
+/* 页面切换动效 */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.fade-enter-from,
-.fade-leave-to {
+.fade-slide-enter-from,
+.fade-slide-leave-to {
   opacity: 0;
+  transform: translateY(8px);
 }
 </style>
