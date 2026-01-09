@@ -22,8 +22,16 @@
             <el-tag v-if="row.defaultStatus === 1" type="success" size="small">默认</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="180" align="center">
+        <el-table-column label="操作" width="220" align="center">
           <template #default="{ row }">
+            <el-button
+              v-if="row.defaultStatus !== 1"
+              link
+              type="success"
+              @click="handleSetDefault(row.id)"
+            >
+              设为默认
+            </el-button>
             <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
             <el-button link type="danger" @click="handleDelete(row.id)">删除</el-button>
           </template>
@@ -64,7 +72,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { getAddressList, saveAddress, deleteAddress } from '@/api/store'
+import { getAddressList, saveAddress, deleteAddress, setDefaultAddress } from '@/api/store'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 interface Address {
@@ -132,6 +140,13 @@ const handleDelete = (id: number) => {
     ElMessage.success('删除成功')
     loadData()
   })
+}
+
+const handleSetDefault = async (id: number) => {
+  if (!id) return
+  await setDefaultAddress(id)
+  ElMessage.success('默认地址已更新')
+  loadData()
 }
 
 const submitForm = async () => {

@@ -9,6 +9,7 @@ export const searchProducts = (params: any) => request({ url: '/portal/product/s
 export const getProductDetail = (id: number) => request({ url: `/portal/product/detail/${id}`, method: 'get' })
 export const getCategoryList = () => request({ url: '/category/list', method: 'get' })
 export const getNotices = () => request({ url: '/portal/notice/list', method: 'get' })
+export const getNoticeDetail = (id: number) => request({ url: `/portal/notice/detail/${id}`, method: 'get' })
 
 // --- 购物车 ---
 export const getCartList = () => request({ url: '/cart/list', method: 'get' })
@@ -20,7 +21,7 @@ export const deleteCartItem = (id: number) => request({ url: `/cart/delete/${id}
 export const createOrder = (data: any) => request({ url: '/order/create', method: 'post', data })
 export const getMyOrders = (params: any) => request({ url: '/order/list', method: 'get', params })
 export const getOrderDetailByNo = (orderNo: string) => request({ url: `/order/detail/${orderNo}`, method: 'get' })
-export const payOrder = (orderNo: string) => request({ url: `/order/pay/${orderNo}`, method: 'post' })
+export const payOrder = (orderNo: string) => request({ url: `/pay/order/${orderNo}`, method: 'post' })
 export const receiveOrder = (orderNo: string) => request({ url: `/order/receive/${orderNo}`, method: 'post' })
 export const cancelOrder = (orderNo: string) => request({ url: `/order/cancel/${orderNo}`, method: 'post' })
 
@@ -28,6 +29,7 @@ export const cancelOrder = (orderNo: string) => request({ url: `/order/cancel/${
 export const getAddressList = () => request({ url: '/member/address/list', method: 'get' })
 export const saveAddress = (data: any) => request({ url: '/member/address/save', method: 'post', data })
 export const deleteAddress = (id: number) => request({ url: `/member/address/delete/${id}`, method: 'delete' })
+export const setDefaultAddress = (id: number) => request({ url: `/member/address/default/${id}`, method: 'post' })
 export const getUserInfo = () => request({ url: '/member/info', method: 'get' })
 export const updateUserInfo = (data: any) => request({ url: '/member/update', method: 'post', data })
 export const updatePassword = (data: any) => request({ url: '/member/password', method: 'post', data })

@@ -45,6 +45,12 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/views/NoticeList.vue'),
                 meta: { title: '公告列表' }
             },
+            {
+                path: 'notice/:id',
+                name: 'NoticeDetail',
+                component: () => import('@/views/NoticeDetail.vue'),
+                meta: { title: '公告详情' }
+            },
             // --- 需要登录的页面 ---
             {
                 path: 'cart',

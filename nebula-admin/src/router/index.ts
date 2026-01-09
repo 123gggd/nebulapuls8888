@@ -51,6 +51,12 @@ export const asyncRoutes: RouteRecordRaw[] = [
                 meta: { title: '商品列表', icon: 'List' }
             },
             {
+                path: 'review',
+                name: 'ProductReview',
+                component: () => import('@/views/product/review.vue'),
+                meta: { title: '评价管理', icon: 'ChatLineRound' }
+            },
+            {
                 path: 'category',
                 name: 'Category',
                 component: () => import('@/views/product/category.vue'),
