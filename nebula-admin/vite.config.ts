@@ -31,6 +31,10 @@ export default defineConfig({
                 changeOrigin: true,
                 // 如果后端接口没有 /api 前缀，取消下面注释
                 // rewrite: (path) => path.replace(/^\/api/, '')
+            },
+            '/images': {
+                target: 'http://localhost:8080',
+                changeOrigin: true,
             }
         }
     }

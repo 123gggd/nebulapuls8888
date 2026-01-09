@@ -13,15 +13,13 @@
         </div>
       </div>
 
-      <!-- 顶部过滤栏 -->
-      <div class="filter-bar">
-        <!-- 分类筛选 -->
+      <div class="filter-card">
         <div class="filter-row" v-if="categoryList.length > 0">
           <span class="label">分类：</span>
           <div class="options">
-            <span class="option-item" :class="{ active: !categoryId }" @click="handleCategory(undefined)"
-              >全部</span
-            >
+            <span class="option-item" :class="{ active: !categoryId }" @click="handleCategory(undefined)">
+              全部
+            </span>
             <span
               v-for="cat in categoryList"
               :key="cat.id"
@@ -34,7 +32,7 @@
           </div>
         </div>
 
-        <el-divider style="margin: 15px 0" />
+        <el-divider style="margin: 16px 0" />
 
         <div class="filter-row">
           <span class="label">价格：</span>
@@ -56,18 +54,17 @@
           </div>
         </div>
 
-        <el-divider style="margin: 15px 0" />
+        <el-divider style="margin: 16px 0" />
 
-        <!-- 排序选项 -->
         <div class="sort-row">
           <div class="sort-options">
             <span class="label">排序：</span>
-            <span class="sort-item" :class="{ active: sortType === 'default' }" @click="handleSort('default')"
-              >综合</span
-            >
-            <span class="sort-item" :class="{ active: sortType === 'sale' }" @click="handleSort('sale')"
-              >销量</span
-            >
+            <span class="sort-item" :class="{ active: sortType === 'default' }" @click="handleSort('default')">
+              综合
+            </span>
+            <span class="sort-item" :class="{ active: sortType === 'sale' }" @click="handleSort('sale')">
+              销量
+            </span>
             <span class="sort-item price-sort" :class="{ active: sortType === 'price' }" @click="handleSort('price')">
               价格
               <el-icon v-if="sortOrder === 'asc' && sortType === 'price'"><CaretTop /></el-icon>
@@ -76,12 +73,11 @@
             </span>
           </div>
 
-          <!-- 激活筛选标签（合并：用 el-tag 可关闭） -->
           <div class="active-filters" v-if="hasActiveFilters">
             <el-tag v-if="keyword" closable @close="clearKeyword" class="tag">关键词：{{ keyword }}</el-tag>
-            <el-tag v-if="categoryName" closable @close="handleCategory(undefined)" class="tag"
-              >分类：{{ categoryName }}</el-tag
-            >
+            <el-tag v-if="categoryName" closable @close="handleCategory(undefined)" class="tag">
+              分类：{{ categoryName }}
+            </el-tag>
             <el-tag v-if="priceMin !== null" closable @close="priceMin = null" class="tag">最低 ¥{{ priceMin }}</el-tag>
             <el-tag v-if="priceMax !== null" closable @close="priceMax = null" class="tag">最高 ¥{{ priceMax }}</el-tag>
             <el-tag v-if="inStockOnly" closable @close="inStockOnly = false" class="tag">仅看有货</el-tag>
@@ -92,7 +88,6 @@
         </div>
       </div>
 
-      <!-- 商品列表 -->
       <div class="product-grid" v-if="!loading">
         <div v-for="item in displayList" :key="item.id" class="product-item" @click="router.push(`/product/${item.id}`)">
           <div class="img-box">
@@ -106,7 +101,7 @@
             <div class="name" :title="item.name" v-html="highlightKeyword(item.name)"></div>
             <div class="price-row">
               <span class="price">¥{{ item.price }}</span>
-              <span class="sales">{{ item.sale || 0 }}人付款</span>
+              <span class="sales">{{ item.sale || 0 }} 人付款</span>
             </div>
           </div>
         </div>
@@ -120,7 +115,6 @@
         </el-skeleton>
       </div>
 
-      <!-- 空状态：使用 EmptyState（合并 codex） -->
       <EmptyState
         v-if="!loading && displayList.length === 0"
         description="未找到相关商品，换个词试试？"
@@ -149,7 +143,6 @@
         </div>
       </EmptyState>
 
-      <!-- 分页：有筛选时隐藏（保留你原逻辑） -->
       <div class="pagination-box" v-if="total > 0 && !hasActiveFilters">
         <el-pagination
           background
@@ -176,7 +169,7 @@ interface Product {
   name: string
   mainImage: string
   price: number
-  sale: number
+  sale?: number
   stock?: number
   rating?: number
   [key: string]: any
@@ -203,7 +196,6 @@ const sortType = ref('default')
 const sortOrder = ref('')
 const lastUpdated = ref('')
 
-/** 合并 codex：更多筛选条件 */
 const priceMin = ref<number | null>(null)
 const priceMax = ref<number | null>(null)
 const inStockOnly = ref(false)
@@ -227,18 +219,38 @@ const hasActiveFilters = computed(() => {
   )
 })
 
-/** 前端本地过滤（用于展示用） */
 const filteredList = computed(() => {
   let list = [...productList.value]
-  if (priceMin.value !== null) list = list.filter((item) => item.price >= (priceMin.value || 0))
-  if (priceMax.value !== null) list = list.filter((item) => item.price <= (priceMax.value || 0))
-  if (inStockOnly.value) list = list.filter((item) => (item.stock ?? 1) > 0)
-  if (minRating.value > 0) list = list.filter((item) => (item.rating ?? 0) >= minRating.value)
+  if (priceMin.value !== null) {
+    list = list.filter((item) => item.price >= (priceMin.value as number))
+  }
+  if (priceMax.value !== null) {
+    list = list.filter((item) => item.price <= (priceMax.value as number))
+  }
+  if (inStockOnly.value) {
+    list = list.filter((item) => (item.stock ?? 0) > 0)
+  }
+  if (minRating.value > 0) {
+    list = list.filter((item) => (item.rating ?? 0) >= minRating.value)
+  }
+  if (sortType.value === 'sale') {
+    list = list.sort((a, b) => (b.sale ?? 0) - (a.sale ?? 0))
+  }
   return list
 })
 
-const displayList = computed(() => (hasActiveFilters.value ? filteredList.value : productList.value))
+const displayList = computed(() => {
+  if (sortType.value === 'sale' || hasActiveFilters.value) {
+    return filteredList.value
+  }
+  return productList.value
+})
 const displayTotal = computed(() => (hasActiveFilters.value ? filteredList.value.length : total.value))
+
+const syncFromRoute = () => {
+  const queryKeyword = route.query.keyword as string | undefined
+  keyword.value = queryKeyword?.trim() || ''
+}
 
 const loadCategories = async () => {
   try {
@@ -255,20 +267,12 @@ const doSearch = async () => {
     const params: any = {
       page: currentPage.value,
       size: pageSize.value,
-      keyword: keyword.value,
-      categoryId: categoryId.value,
-      minPrice: priceMin.value,
-      maxPrice: priceMax.value,
-      inStock: inStockOnly.value,
-      minRating: minRating.value
+      keyword: keyword.value || undefined,
+      categoryId: categoryId.value || undefined
     }
 
-    if (sortType.value === 'price') {
-      params.sort = 'price'
-      params.order = sortOrder.value
-    } else if (sortType.value === 'sale') {
-      params.sort = 'sale'
-      params.order = 'desc'
+    if (sortType.value === 'price' && sortOrder.value) {
+      params.sort = sortOrder.value === 'asc' ? 'price_asc' : 'price_desc'
     }
 
     const res: any = await searchProducts(params)
@@ -298,4 +302,320 @@ const handleSort = (type: string) => {
   if (type === 'price') {
     if (sortType.value === 'price') {
       sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc'
+    } else {
+      sortOrder.value = 'asc'
     }
+  } else {
+    sortOrder.value = ''
+  }
+  sortType.value = type
+  currentPage.value = 1
+  doSearch()
+}
+
+const handlePageChange = () => {
+  doSearch()
+}
+
+const applyFilters = () => {
+  currentPage.value = 1
+  doSearch()
+}
+
+const resetFilters = () => {
+  priceMin.value = null
+  priceMax.value = null
+  inStockOnly.value = false
+  minRating.value = 0
+  doSearch()
+}
+
+const clearKeyword = () => {
+  keyword.value = ''
+  router.replace({ path: '/search', query: {} })
+  currentPage.value = 1
+  doSearch()
+}
+
+const searchKeyword = (value: string) => {
+  keyword.value = value
+  router.replace({ path: '/search', query: { keyword: value } })
+  currentPage.value = 1
+  doSearch()
+}
+
+onMounted(() => {
+  syncFromRoute()
+  loadCategories()
+  doSearch()
+})
+
+watch(
+  () => route.query.keyword,
+  () => {
+    syncFromRoute()
+    currentPage.value = 1
+    doSearch()
+  }
+)
+</script>
+
+<style scoped lang="scss">
+.search-page {
+  padding: 24px 0 60px;
+  background: #f5f7fa;
+  min-height: 80vh;
+}
+
+.container {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+.search-hero {
+  background: linear-gradient(120deg, #dbeafe 0%, #f0f9ff 100%);
+  padding: 28px 32px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+
+  h2 {
+    margin: 0 0 8px;
+    font-size: 26px;
+    color: #1e293b;
+  }
+
+  .highlight {
+    color: #2563eb;
+    font-weight: 600;
+  }
+
+  .search-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    text-align: right;
+    color: #64748b;
+  }
+
+  .muted {
+    font-size: 12px;
+  }
+}
+
+.filter-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+  margin-bottom: 20px;
+}
+
+.filter-row,
+.sort-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.label {
+  color: #64748b;
+  font-size: 13px;
+  min-width: 48px;
+}
+
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.option-item {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  color: #64748b;
+  cursor: pointer;
+  border: 1px solid transparent;
+  background: #f8fafc;
+
+  &.active,
+  &:hover {
+    background: #dbeafe;
+    color: #2563eb;
+    border-color: #bfdbfe;
+  }
+}
+
+.price-range {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.split {
+  color: #94a3b8;
+}
+
+.stock-filter,
+.rating-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sort-options {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.sort-item {
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  cursor: pointer;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &.active {
+    background: #2563eb;
+    color: #fff;
+  }
+}
+
+.active-filters {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.tag {
+  border-radius: 999px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.product-item {
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(15, 23, 42, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 26px rgba(15, 23, 42, 0.12);
+  }
+
+  .img-box {
+    width: 100%;
+    height: 210px;
+    overflow: hidden;
+  }
+
+  .info {
+    padding: 12px 14px 16px;
+  }
+
+  .name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #1f2937;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .price-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #64748b;
+    font-size: 12px;
+  }
+
+  .price {
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 16px;
+  }
+}
+
+.product-skeleton {
+  border-radius: 14px;
+}
+
+.skeleton-card {
+  height: 280px;
+  background: #eef2f7;
+  border-radius: 14px;
+}
+
+.image-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.pagination-box {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.suggestions {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: #64748b;
+}
+
+@media (max-width: 1280px) {
+  .container {
+    width: 100%;
+    padding: 0 20px;
+  }
+  .product-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .search-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .product-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
