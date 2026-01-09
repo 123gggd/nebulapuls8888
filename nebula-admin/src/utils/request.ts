@@ -2,6 +2,8 @@ import axios, { InternalAxiosRequestConfig, AxiosResponse } from 'axios'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useUserStore } from '@/stores/modules/user'
 import router from '@/router'
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 
 // 创建 axios 实例
 const service = axios.create({
@@ -10,9 +12,12 @@ const service = axios.create({
     headers: { 'Content-Type': 'application/json;charset=utf-8' }
 })
 
+NProgress.configure({ showSpinner: false })
+
 // 请求拦截器
 service.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
+        NProgress.start()
         const userStore = useUserStore()
         if (userStore.token) {
             // 这里的 Key 必须和后端 JwtAuthenticationFilter 中检查的 Header 一致
@@ -21,6 +26,7 @@ service.interceptors.request.use(
         return config
     },
     (error: any) => {
+        NProgress.done()
         return Promise.reject(error)
     }
 )
@@ -28,6 +34,7 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
     (response: AxiosResponse) => {
+        NProgress.done()
         const res = response.data
         // 二进制数据直接返回
         if (response.config.responseType === 'blob' || response.config.responseType === 'arraybuffer') {
@@ -47,6 +54,7 @@ service.interceptors.response.use(
         }
     },
     (error: any) => {
+        NProgress.done()
         const { response } = error
         if (response) {
             // 401: Token 过期或未登录

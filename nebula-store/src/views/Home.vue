@@ -1,18 +1,39 @@
 <template>
   <div class="home-page">
-    <!-- 轮播图 -->
-    <div class="banner-section">
-      <el-carousel height="380px" class="banner" :interval="5000" arrow="always">
-        <el-carousel-item v-for="item in 3" :key="item">
-          <div class="banner-item" :class="`bg-${item}`">
-            <div class="banner-content">
-              <h1>Nebula Commerce 2026</h1>
-              <p>虚拟线程驱动 · 下一代购物体验</p>
-              <el-button type="primary" size="large" round @click="$router.push('/search')">立即探索</el-button>
-            </div>
+    <!-- Hero Banner -->
+    <div class="hero-section full-bleed">
+      <el-skeleton v-if="bannerLoading" animated class="hero-skeleton">
+        <template #template>
+          <div class="hero-skeleton__inner">
+            <div class="hero-skeleton__badge"></div>
+            <div class="hero-skeleton__title"></div>
+            <div class="hero-skeleton__desc"></div>
+            <div class="hero-skeleton__btn"></div>
           </div>
-        </el-carousel-item>
-      </el-carousel>
+        </template>
+      </el-skeleton>
+      <Swiper
+        v-else
+        class="hero-swiper"
+        :modules="swiperModules"
+        :autoplay="{ delay: 5000, disableOnInteraction: false }"
+        :pagination="{ clickable: true }"
+        loop
+      >
+        <SwiperSlide v-for="slide in heroSlides" :key="slide.title">
+          <div class="hero-slide" :class="slide.theme">
+            <div class="hero-content">
+              <span class="hero-badge">{{ slide.badge }}</span>
+              <h1>{{ slide.title }}</h1>
+              <p>{{ slide.subtitle }}</p>
+              <el-button type="primary" size="large" round @click="$router.push('/search')">
+                {{ slide.cta }}
+              </el-button>
+            </div>
+            <div class="hero-decor"></div>
+          </div>
+        </SwiperSlide>
+      </Swiper>
     </div>
 
     <!-- 公告栏 -->
@@ -32,63 +53,70 @@
           <h2>⚡ 限时秒杀</h2>
           <span class="subtitle">手慢无 · 每日精选</span>
         </div>
+        <div class="right countdown" v-if="countdownText">
+          <span>距场次结束</span>
+          <strong>{{ countdownText }}</strong>
+        </div>
       </div>
-      <el-row :gutter="20">
-        <el-col :span="6" v-for="item in seckillList" :key="item.id">
-          <el-card :body-style="{ padding: '0px' }" shadow="hover" class="seckill-card">
-            <div class="image-wrapper" @click="$router.push(`/product/${item.productId}`)">
-              <el-image :src="item.mainImage" class="image" loading="lazy" />
-              <div class="discount-tag">秒杀</div>
+      <div class="seckill-grid">
+        <el-card v-for="item in seckillList" :key="item.id" :body-style="{ padding: '0px' }" shadow="hover" class="seckill-card">
+          <div class="image-wrapper" @click="$router.push(`/product/${item.productId}`)">
+            <el-image :src="item.mainImage" class="image" loading="lazy" />
+            <div class="discount-tag">秒杀</div>
+          </div>
+          <div class="info">
+            <div class="name" :title="item.productName">{{ item.productName }}</div>
+            <div class="price-row">
+              <div class="seckill-price">¥{{ item.seckillPrice }}</div>
+              <div class="original-price">¥{{ item.originalPrice }}</div>
             </div>
-            <div class="info">
-              <div class="name" :title="item.productName">{{ item.productName }}</div>
-              <div class="price-row">
-                <div class="seckill-price">¥{{ item.seckillPrice }}</div>
-                <div class="original-price">¥{{ item.originalPrice }}</div>
-              </div>
-              <div class="stock-row">
-                <el-progress :percentage="item.stockCount > 10 ? 50 : 90" :show-text="false" status="exception" />
-                <span class="stock-text">仅剩 {{ item.stockCount }} 件</span>
-              </div>
-              <el-button type="danger" size="small" style="width: 100%; margin-top: 10px" @click="$router.push(`/product/${item.productId}`)">立即抢购</el-button>
+            <div class="stock-row">
+              <el-progress :percentage="getSeckillProgress(item)" :show-text="false" status="exception" />
+              <span class="stock-text">已抢 {{ getSeckillProgress(item) }}%</span>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+            <el-button type="danger" size="small" class="seckill-btn" @click="$router.push(`/product/${item.productId}`)">立即抢购</el-button>
+          </div>
+        </el-card>
+      </div>
     </div>
 
-    <!-- 热销商品 -->
+    <!-- 猜你喜欢 -->
     <div class="section-container">
       <div class="section-header">
         <div class="left">
-          <h2>🔥 热销商品</h2>
-          <span class="subtitle">大家都在买的好物</span>
+          <h2>✨ 猜你喜欢</h2>
+          <span class="subtitle">精选好物，值得入手</span>
         </div>
         <el-link type="primary" @click="$router.push('/search')">查看全部 <el-icon><ArrowRight /></el-icon></el-link>
       </div>
 
-      <el-row :gutter="25">
-        <el-col :span="6" v-for="item in productList" :key="item.id" style="margin-bottom: 25px;">
-          <el-card :body-style="{ padding: '0px' }" shadow="hover" class="product-card">
-            <div class="image-wrapper" @click="$router.push(`/product/${item.id}`)">
-              <el-image :src="item.mainImage" class="image" loading="lazy" />
-              <div class="hover-mask">
-                <el-button type="primary" round :icon="ShoppingCart" @click.stop="handleAddToCart(item)">加入购物车</el-button>
-              </div>
+      <div v-if="loading" class="masonry-grid">
+        <el-skeleton v-for="item in 8" :key="item" animated class="product-skeleton">
+          <template #template>
+            <div class="skeleton-card"></div>
+          </template>
+        </el-skeleton>
+      </div>
+      <div v-else class="masonry-grid">
+        <el-card v-for="item in productList" :key="item.id" :body-style="{ padding: '0px' }" shadow="hover" class="product-card">
+          <div class="image-wrapper" @click="$router.push(`/product/${item.id}`)">
+            <el-image :src="item.mainImage" class="image" loading="lazy" />
+            <div class="hover-mask">
+              <el-button type="primary" round :icon="ShoppingCart" @click.stop="handleAddToCart(item)">加入购物车</el-button>
             </div>
-            <div class="product-info">
-              <div class="product-name" :title="item.name">{{ item.name }}</div>
-              <div class="product-subtitle">{{ item.subtitle || '暂无描述' }}</div>
-              <div class="bottom">
-                <span class="price">
-                  <small>¥</small> {{ item.price }}
-                </span>
-                <span class="sales">库存: {{ item.stock }}</span>
-              </div>
+          </div>
+          <div class="product-info">
+            <div class="product-name" :title="item.name">{{ item.name }}</div>
+            <div class="product-subtitle">{{ item.subtitle || '暂无描述' }}</div>
+            <div class="bottom">
+              <span class="price">
+                <small>¥</small> {{ item.price }}
+              </span>
+              <span class="sales">库存: {{ item.stock }}</span>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+          </div>
+        </el-card>
+      </div>
 
       <el-empty v-if="!loading && productList.length === 0" description="暂无商品，请在后台发布" />
     </div>
@@ -96,12 +124,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { searchProducts, addToCart, getNotices, getCurrentSeckills } from '@/api/store'
 import { ArrowRight, ShoppingCart, Bell } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { useRouter } from 'vue-router'
+import { Swiper, SwiperSlide } from 'swiper/vue'
+import { Autoplay, Pagination } from 'swiper/modules'
+import 'swiper/css'
+import 'swiper/css/pagination'
 
 const userStore = useUserStore()
 const router = useRouter()
@@ -109,6 +141,33 @@ const productList = ref<any[]>([])
 const noticeList = ref<any[]>([])
 const seckillList = ref<any[]>([])
 const loading = ref(false)
+const bannerLoading = ref(true)
+const countdownText = ref('')
+const swiperModules = [Autoplay, Pagination]
+const heroSlides = [
+  {
+    badge: '年度精选',
+    title: 'Nebula Commerce 2026',
+    subtitle: '虚拟线程驱动 · 下一代购物体验',
+    cta: '立即探索',
+    theme: 'theme-a'
+  },
+  {
+    badge: '限时福利',
+    title: '精选好物限时直降',
+    subtitle: '每天 10 点开抢 · 领券立减',
+    cta: '查看优惠',
+    theme: 'theme-b'
+  },
+  {
+    badge: '品质保障',
+    title: '官方精选供应链',
+    subtitle: '极速发货 · 7 天无忧退换',
+    cta: '立即选购',
+    theme: 'theme-c'
+  }
+]
+let countdownTimer: number | null = null
 
 const loadData = async () => {
   loading.value = true
@@ -133,11 +192,13 @@ const loadData = async () => {
   try {
     const sRes: any = await getCurrentSeckills()
     seckillList.value = sRes || []
+    initCountdown()
   } catch (e) {
     console.warn('秒杀活动服务暂时不可用') // 降级处理
     seckillList.value = []
   } finally {
     loading.value = false
+    bannerLoading.value = false
   }
 }
 
@@ -155,36 +216,142 @@ const handleAddToCart = async (item: any) => {
   }
 }
 
+const initCountdown = () => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+  }
+  if (!seckillList.value.length) {
+    countdownText.value = ''
+    return
+  }
+  const endTimeRaw = seckillList.value[0]?.endTime || seckillList.value[0]?.endAt || seckillList.value[0]?.endDate
+  const endTime = endTimeRaw ? new Date(endTimeRaw).getTime() : Date.now() + 3600 * 1000
+  const update = () => {
+    const diff = endTime - Date.now()
+    if (diff <= 0) {
+      countdownText.value = '00:00:00'
+      return
+    }
+    const hours = Math.floor(diff / 3600000)
+    const minutes = Math.floor((diff % 3600000) / 60000)
+    const seconds = Math.floor((diff % 60000) / 1000)
+    countdownText.value = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+  }
+  update()
+  countdownTimer = window.setInterval(update, 1000)
+}
+
+const getSeckillProgress = (item: any) => {
+  const total = item.totalStock ?? item.originalStock ?? item.stockCount ?? 0
+  if (!total) return 0
+  const sold = Math.max(0, total - (item.stockCount ?? 0))
+  return Math.min(100, Math.round((sold / total) * 100))
+}
+
 onMounted(() => {
   loadData()
+})
+
+onUnmounted(() => {
+  if (countdownTimer) {
+    clearInterval(countdownTimer)
+  }
 })
 </script>
 
 <style scoped lang="scss">
 .home-page { padding-bottom: 40px; }
 
-.banner-section {
-  margin-bottom: 20px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+.full-bleed {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }
-.banner-item {
-  height: 100%;
+
+.hero-section {
+  margin-bottom: 24px;
+  border-radius: 0 0 24px 24px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+}
+
+.hero-swiper,
+.hero-slide {
+  height: 460px;
+}
+
+.hero-slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: #fff;
+
+  &.theme-a { background: linear-gradient(120deg, #2563eb 0%, #38bdf8 50%, #22c55e 100%); }
+  &.theme-b { background: linear-gradient(120deg, #f97316 0%, #f43f5e 60%, #ef4444 100%); }
+  &.theme-c { background: linear-gradient(120deg, #7c3aed 0%, #6366f1 50%, #38bdf8 100%); }
+}
+
+.hero-content {
+  text-align: left;
+  max-width: 520px;
+  padding: 0 40px;
+  z-index: 2;
+
+  h1 { font-size: 48px; margin: 16px 0 10px; font-weight: 800; }
+  p { font-size: 18px; margin: 0 0 28px; opacity: 0.9; }
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.18);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+
+.hero-decor {
+  position: absolute;
+  right: 8%;
+  top: 20%;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  filter: blur(0);
+}
+
+.hero-skeleton {
+  height: 460px;
+  background: linear-gradient(120deg, #e5e7eb 0%, #f1f5f9 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-skeleton__inner {
+  width: 520px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  color: white;
-  text-align: center;
-
-  h1 { font-size: 48px; margin: 0 0 10px; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-  p { font-size: 18px; margin: 0 0 30px; opacity: 0.9; }
-
-  &.bg-1 { background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%); }
-  &.bg-2 { background: linear-gradient(120deg, #a18cd1 0%, #fbc2eb 100%); }
-  &.bg-3 { background: linear-gradient(120deg, #fccb90 0%, #d57eeb 100%); }
+  gap: 16px;
 }
+
+.hero-skeleton__badge,
+.hero-skeleton__title,
+.hero-skeleton__desc,
+.hero-skeleton__btn {
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  height: 16px;
+}
+
+.hero-skeleton__badge { width: 120px; height: 24px; }
+.hero-skeleton__title { width: 60%; height: 32px; border-radius: 12px; }
+.hero-skeleton__desc { width: 80%; height: 20px; border-radius: 10px; }
+.hero-skeleton__btn { width: 160px; height: 44px; border-radius: 999px; }
 
 .notice-bar {
   background: #fdf6ec;
@@ -219,56 +386,129 @@ onMounted(() => {
     h2 { margin: 0; font-size: 26px; color: #333; display: inline-block; margin-right: 10px; }
     .subtitle { color: #999; font-size: 14px; }
   }
+  .countdown {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    color: #ef4444;
+    box-shadow: 0 6px 12px rgba(239, 68, 68, 0.2);
+    strong { font-size: 16px; letter-spacing: 1px; }
+  }
+}
+
+.seckill-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 18px;
 }
 
 .seckill-card {
-  border: none;
-  .image-wrapper { height: 180px; position: relative; }
-  .discount-tag { position: absolute; top: 10px; left: 10px; background: #f56c6c; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
-  .info { padding: 12px; }
-  .name { font-weight: bold; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .price-row { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
-  .seckill-price { color: #f56c6c; font-size: 20px; font-weight: bold; }
-  .original-price { text-decoration: line-through; color: #999; font-size: 12px; }
-  .stock-row { display: flex; align-items: center; gap: 8px; .el-progress { flex: 1; } .stock-text { font-size: 12px; color: #999; width: 60px; text-align: right; } }
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 30px rgba(239, 68, 68, 0.15);
+  }
+  .image-wrapper {
+    position: relative;
+    height: 180px;
+    overflow: hidden;
+    .image { width: 100%; height: 100%; object-fit: cover; }
+    .discount-tag {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: #ef4444;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+    }
+  }
+  .info {
+    padding: 14px;
+    .name { font-weight: 600; margin-bottom: 6px; }
+    .price-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+    .seckill-price { color: #ef4444; font-weight: 700; font-size: 18px; }
+    .original-price { color: #94a3b8; text-decoration: line-through; font-size: 13px; }
+    .stock-row { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #ef4444; }
+  }
+  .seckill-btn { width: 100%; margin-top: 8px; }
+}
+
+.masonry-grid {
+  column-count: 4;
+  column-gap: 24px;
 }
 
 .product-card {
-  border: none;
+  break-inside: avoid;
+  margin-bottom: 24px;
   border-radius: 12px;
-  transition: all 0.3s;
-  &:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.1); .image-wrapper .hover-mask { opacity: 1; } }
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  }
+}
+
+.product-skeleton {
+  break-inside: avoid;
+  margin-bottom: 24px;
+}
+
+.skeleton-card {
+  height: 320px;
+  border-radius: 12px;
+  background: #eef2f7;
 }
 
 .image-wrapper {
-  height: 240px;
-  overflow: hidden;
   position: relative;
-  background: #f8f8f8;
-  cursor: pointer;
+  height: 220px;
+  overflow: hidden;
   .image { width: 100%; height: 100%; object-fit: cover; }
-  .hover-mask {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.3);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
 }
 
+.hover-mask {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.product-card:hover .hover-mask { opacity: 1; }
+
 .product-info {
-  padding: 16px;
-  .product-name { font-weight: bold; font-size: 16px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #333; }
-  .product-subtitle { font-size: 12px; color: #999; margin-bottom: 12px; height: 18px; overflow: hidden; }
-  .bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    .price { color: #f56c6c; font-size: 22px; font-weight: 800; small { font-size: 14px; } }
-    .sales { font-size: 12px; color: #999; }
-  }
+  padding: 14px 16px 18px;
+  .product-name { font-weight: 600; font-size: 15px; margin-bottom: 4px; }
+  .product-subtitle { color: #94a3b8; font-size: 13px; margin-bottom: 10px; }
+  .bottom { display: flex; justify-content: space-between; align-items: center; }
+  .price { color: #ef4444; font-weight: 700; font-size: 18px; }
+  .sales { color: #64748b; font-size: 12px; }
+}
+
+@media (max-width: 1200px) {
+  .masonry-grid { column-count: 3; }
+}
+
+@media (max-width: 960px) {
+  .hero-content { text-align: center; }
+  .hero-decor { display: none; }
+  .masonry-grid { column-count: 2; }
+}
+
+@media (max-width: 720px) {
+  .masonry-grid { column-count: 1; }
 }
 </style>

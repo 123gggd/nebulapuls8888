@@ -53,6 +53,23 @@
           </el-table-column>
         </el-table>
 
+        <el-empty v-if="!loading && tableData.length === 0" description="还没有订单，去首页逛逛吧" class="empty-state">
+          <template #image>
+            <svg viewBox="0 0 220 160" aria-hidden="true" class="empty-illustration">
+              <defs>
+                <linearGradient id="orderGradient" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0%" stop-color="#f97316" />
+                  <stop offset="100%" stop-color="#fb7185" />
+                </linearGradient>
+              </defs>
+              <rect x="18" y="20" width="184" height="120" rx="18" fill="#fef3c7" />
+              <rect x="46" y="48" width="128" height="70" rx="12" fill="url(#orderGradient)" opacity="0.9" />
+              <path d="M70 66h80M70 82h60M70 98h40" stroke="#fff" stroke-width="6" stroke-linecap="round" />
+            </svg>
+          </template>
+          <el-button type="primary" @click="router.push('/')">去首页</el-button>
+        </el-empty>
+
         <div class="pagination-box" v-if="total > 0">
           <el-pagination
               background
@@ -360,6 +377,15 @@ onMounted(() => { loadData() })
   }
 }
 .amount { color: #f56c6c; font-weight: bold; }
+
+.empty-state {
+  padding: 30px 0;
+  .empty-illustration {
+    width: 180px;
+    height: auto;
+    margin-bottom: 10px;
+  }
+}
 
 /* 详情弹窗 */
 .detail-box {
