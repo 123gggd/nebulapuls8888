@@ -179,8 +179,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, nextTick } from 'vue'
-import { getCartList, deleteCartItem, createOrder, getAddressList, updateCart } from '@/api/store'
-import request from '@/utils/request'
+import { getCartList, deleteCartItem, createOrder, getAddressList, updateCart, getUsableCoupons } from '@/api/store'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { InfoFilled } from '@element-plus/icons-vue'
@@ -344,11 +343,7 @@ const openCheckout = async () => {
     }
 
     // 手动调用请求以获取优惠券
-    const couponRes = await request({
-      url: '/marketing/coupon/usable',
-      method: 'get',
-      params: { orderAmount: totalPrice.value }
-    }) as unknown as Coupon[]
+    const couponRes = await getUsableCoupons({ orderAmount: totalPrice.value }) as unknown as Coupon[]
 
     availableCoupons.value = couponRes || []
 
