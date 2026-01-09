@@ -462,4 +462,120 @@ onMounted(() => {
 .disabled-text { font-size: 12px; color: #999; }
 
 .cart-footer {
-  margin-top:
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid #ebeef5;
+}
+
+.left-ops {
+  color: #909399;
+  font-size: 13px;
+}
+
+.right-calc {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.total-info {
+  font-size: 14px;
+  color: #606266;
+  .count {
+    color: #409eff;
+    font-weight: 600;
+    margin: 0 4px;
+  }
+  .price {
+    color: #f56c6c;
+    font-weight: 700;
+    margin-left: 6px;
+  }
+}
+
+.checkout-btn {
+  padding: 10px 26px;
+  border-radius: 20px;
+}
+
+.checkout-container {
+  min-height: 200px;
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.address-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.address-item {
+  width: 100%;
+}
+
+.addr-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  .name {
+    font-weight: 600;
+  }
+  .phone {
+    color: #606266;
+  }
+  .detail {
+    color: #909399;
+    font-size: 12px;
+  }
+}
+
+.manage-addr-btn {
+  padding: 0;
+}
+
+.coupon-tip {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #909399;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.price-summary {
+  margin-top: 20px;
+  background: #f5f7fa;
+  padding: 12px 16px;
+  border-radius: 8px;
+  .row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 6px;
+    font-size: 13px;
+  }
+  .coupon-row {
+    color: #f56c6c;
+  }
+  .total-row {
+    font-weight: 600;
+  }
+  .final-price {
+    color: #f56c6c;
+  }
+}
+
+@media (max-width: 1280px) {
+  .container {
+    width: 100%;
+    padding: 0 20px;
+  }
+}
+</style>
