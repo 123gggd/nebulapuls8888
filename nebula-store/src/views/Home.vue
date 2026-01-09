@@ -132,7 +132,17 @@ const loadData = async () => {
   // 3. 加载秒杀 (即使后端500也不影响主页其他内容)
   try {
     const sRes: any = await getCurrentSeckills()
-    seckillList.value = sRes || []
+    if (Array.isArray(sRes)) {
+      seckillList.value = sRes
+    } else if (Array.isArray(sRes?.data)) {
+      seckillList.value = sRes.data
+    } else if (Array.isArray(sRes?.list)) {
+      seckillList.value = sRes.list
+    } else if (Array.isArray(sRes?.records)) {
+      seckillList.value = sRes.records
+    } else {
+      seckillList.value = []
+    }
   } catch (e) {
     console.warn('秒杀活动服务暂时不可用') // 降级处理
     seckillList.value = []
