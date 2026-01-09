@@ -29,6 +29,10 @@ export default defineConfig({
             '/api': {
                 target: 'http://127.0.0.1:8080', // 连接后端
                 changeOrigin: true,
+            },
+            '/images': {
+                target: 'http://127.0.0.1:8080',
+                changeOrigin: true,
             }
         }
     }

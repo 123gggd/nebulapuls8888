@@ -33,12 +33,21 @@ public class ProductAdminController {
     @GetMapping("/list")
     public Result<Page<Product>> list(@RequestParam(defaultValue = "1") Integer page,
                                       @RequestParam(defaultValue = "10") Integer size,
-                                      @RequestParam(required = false) String name) {
+                                      @RequestParam(required = false) String name,
+                                      @RequestParam(required = false) String keyword,
+                                      @RequestParam(required = false) Integer status) {
         Page<Product> pageParam = new Page<>(page, size);
         LambdaQueryWrapper<Product> wrapper = new LambdaQueryWrapper<>();
 
-        if (StringUtils.hasText(name)) {
-            wrapper.like(Product::getName, name);
+        String searchTerm = StringUtils.hasText(keyword) ? keyword : name;
+        if (StringUtils.hasText(searchTerm)) {
+            wrapper.and(w -> w.like(Product::getName, searchTerm)
+                    .or()
+                    .like(Product::getSubtitle, searchTerm));
+        }
+
+        if (status != null) {
+            wrapper.eq(Product::getStatus, status);
         }
 
         // [优化] 这里不需要手动判断 MERCHANT 角色并拼接 merchant_id
