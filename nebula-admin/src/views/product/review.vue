@@ -61,6 +61,8 @@
         <el-table-column label="操作" width="200" align="center" fixed="right">
           <template #default="{ row }">
             <el-button link type="primary" @click="openReply(row)">回复</el-button>
+
+            <!-- 只有管理员可以审核/改状态 -->
             <el-dropdown v-if="isAdmin" @command="(command: number) => handleStatus(row, command)">
               <el-button link type="warning">审核</el-button>
               <template #dropdown>
@@ -119,8 +121,9 @@ const total = ref(0)
 const replyVisible = ref(false)
 const replyLoading = ref(false)
 const currentRow = ref<any>(null)
+
 const userStore = useUserStore()
-const isAdmin = computed(() => userStore.roles.includes('ADMIN'))
+const isAdmin = computed(() => (userStore.roles || []).includes('ADMIN'))
 
 const queryParams = reactive({
   page: 1,
@@ -186,6 +189,10 @@ const submitReply = async () => {
 }
 
 const handleStatus = async (row: any, status: number) => {
+  if (!isAdmin.value) {
+    ElMessage.error('无权限操作')
+    return
+  }
   const label = status === 1 ? '显示' : status === 2 ? '精选' : '隐藏'
   ElMessageBox.confirm(`确认将该评价设置为【${label}】吗？`, '提示', { type: 'warning' }).then(async () => {
     await updateReviewStatus(row.id, status)
