@@ -15,6 +15,13 @@ export interface MerchantRegisterData {
     contactPhone?: string
 }
 
+// 管理员注册参数
+export interface AdminRegisterData {
+    username: string
+    password: string
+    inviteCode: string
+}
+
 /**
  * 登录接口
  */
@@ -32,6 +39,17 @@ export function login(data: LoginData) {
 export function registerMerchant(data: MerchantRegisterData) {
     return request({
         url: '/auth/register/merchant',
+        method: 'post',
+        data
+    })
+}
+
+/**
+ * 管理员注册接口
+ */
+export function registerAdmin(data: AdminRegisterData) {
+    return request({
+        url: '/auth/register/admin',
         method: 'post',
         data
     })

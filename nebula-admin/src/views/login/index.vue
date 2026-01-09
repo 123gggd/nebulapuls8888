@@ -57,7 +57,7 @@
           </el-form>
         </el-tab-pane>
 
-        <!-- 注册 Tab -->
+        <!-- 商家注册 Tab -->
         <el-tab-pane label="商家入驻" name="register">
           <el-form
               ref="regFormRef"
@@ -91,6 +91,38 @@
             </div>
           </el-form>
         </el-tab-pane>
+
+        <!-- 管理员注册 Tab -->
+        <el-tab-pane label="管理员注册" name="admin">
+          <el-form
+              ref="adminFormRef"
+              :model="adminForm"
+              :rules="adminRules"
+              size="large"
+              @submit.prevent
+          >
+            <el-form-item prop="username">
+              <el-input v-model="adminForm.username" placeholder="管理员账号 (至少4位)" :prefix-icon="User" />
+            </el-form-item>
+            <el-form-item prop="password">
+              <el-input v-model="adminForm.password" type="password" placeholder="管理员密码 (至少6位)" show-password :prefix-icon="Lock" />
+            </el-form-item>
+            <el-form-item prop="inviteCode">
+              <el-input v-model="adminForm.inviteCode" placeholder="管理员邀请码" :prefix-icon="Key" />
+            </el-form-item>
+
+            <el-form-item>
+              <el-button type="warning" :loading="adminLoading" class="full-btn" @click="handleAdminRegister">
+                注册管理员
+              </el-button>
+            </el-form-item>
+
+            <div class="form-footer center-footer">
+              <span style="color: #999">已有账号? </span>
+              <el-button link type="primary" @click="activeTab = 'login'">立即登录</el-button>
+            </div>
+          </el-form>
+        </el-tab-pane>
       </el-tabs>
     </el-card>
   </div>
@@ -100,9 +132,9 @@
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { User, Lock, Shop, Phone } from '@element-plus/icons-vue'
+import { User, Lock, Shop, Phone, Key } from '@element-plus/icons-vue'
 import { useUserStore } from '@/stores/modules/user'
-import { registerMerchant } from '@/api/auth'
+import { registerMerchant, registerAdmin } from '@/api/auth'
 import type { FormInstance, FormRules } from 'element-plus'
 
 const router = useRouter()
@@ -112,8 +144,10 @@ const userStore = useUserStore()
 const activeTab = ref('login')
 const loginFormRef = ref<FormInstance>()
 const regFormRef = ref<FormInstance>()
+const adminFormRef = ref<FormInstance>()
 const loading = ref(false)
 const regLoading = ref(false)
+const adminLoading = ref(false)
 
 // --- 登录逻辑 ---
 const loginForm = reactive({ username: '', password: '' })
@@ -155,6 +189,20 @@ const regRules = reactive<FormRules>({
   storeName: [{ required: true, message: '请输入店铺名称', trigger: 'blur' }]
 })
 
+// --- 管理员注册逻辑 ---
+const adminForm = reactive({ username: '', password: '', inviteCode: '' })
+const adminRules = reactive<FormRules>({
+  username: [
+    { required: true, message: '请输入账号', trigger: 'blur' },
+    { min: 4, message: '账号长度至少4位', trigger: 'blur' }
+  ],
+  password: [
+    { required: true, message: '请输入密码', trigger: 'blur' },
+    { min: 6, message: '密码长度至少6位', trigger: 'blur' }
+  ],
+  inviteCode: [{ required: true, message: '请输入管理员邀请码', trigger: 'blur' }]
+})
+
 const handleRegister = async () => {
   if (!regFormRef.value) return
   await regFormRef.value.validate(async (valid) => {
@@ -175,6 +223,28 @@ const handleRegister = async () => {
         // error handled by request interceptor
       } finally {
         regLoading.value = false
+      }
+    }
+  })
+}
+
+const handleAdminRegister = async () => {
+  if (!adminFormRef.value) return
+  await adminFormRef.value.validate(async (valid) => {
+    if (valid) {
+      adminLoading.value = true
+      try {
+        await registerAdmin(adminForm)
+        ElMessage.success('管理员注册成功，请登录')
+        loginForm.username = adminForm.username
+        activeTab.value = 'login'
+        adminForm.username = ''
+        adminForm.password = ''
+        adminForm.inviteCode = ''
+      } catch (e) {
+        // error handled by request interceptor
+      } finally {
+        adminLoading.value = false
       }
     }
   })

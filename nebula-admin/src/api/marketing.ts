@@ -21,7 +21,7 @@ export function createCoupon(data: any) {
 export function updateCouponStatus(id: number, status: number) {
     return request({
         url: `/marketing/admin/coupon/status/${id}/${status}`,
-        method: 'put'
+        method: 'post'
     })
 }
 

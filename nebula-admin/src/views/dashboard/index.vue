@@ -1,7 +1,7 @@
 <template>
   <div class="dashboard-container">
     <el-row :gutter="20" class="stats-row">
-      <el-col :span="6">
+      <el-col v-if="isAdmin" :span="6">
         <el-card shadow="never" class="stat-card">
           <div class="stat-header">
             <div>
@@ -98,7 +98,7 @@
     </el-row>
 
     <el-row :gutter="20" class="charts-row">
-      <el-col :span="14">
+      <el-col :span="isAdmin ? 14 : 24">
         <el-card shadow="never" class="latest-card">
           <template #header>
             <div class="card-header">
@@ -116,7 +116,7 @@
           </el-table>
         </el-card>
       </el-col>
-      <el-col :span="10">
+      <el-col v-if="isAdmin" :span="10">
         <el-card shadow="never" class="chart-card">
           <template #header>
             <div class="card-header">
@@ -171,6 +171,7 @@ import { getOrderList } from '@/api/order'
 import { getCategoryTree } from '@/api/category'
 import { getProductList } from '@/api/product'
 import { CaretTop, CaretBottom, Goods, User, Document } from '@element-plus/icons-vue'
+import { useUserStore } from '@/stores/modules/user'
 
 const salesChartRef = ref()
 const categoryChartRef = ref()
@@ -178,6 +179,8 @@ const userChartRef = ref()
 let salesChart: echarts.ECharts | null = null
 let categoryChart: echarts.ECharts | null = null
 let userChart: echarts.ECharts | null = null
+const userStore = useUserStore()
+const isAdmin = computed(() => userStore.roles.includes('ADMIN'))
 
 const stats = reactive({
   totalSales: 0,
@@ -298,8 +301,10 @@ const loadDashboard = async () => {
     stats.trendDates = data.trendDates
     stats.trendValues = data.trendValues
     initSalesChart(data.trendDates, data.trendValues)
-    const userTrend = data.trendValues.map((value: number) => Math.max(1, Math.round(value / 100)))
-    initUserChart(data.trendDates, userTrend)
+    if (isAdmin.value) {
+      const userTrend = data.trendValues.map((value: number) => Math.max(1, Math.round(value / 100)))
+      initUserChart(data.trendDates, userTrend)
+    }
   }
 }
 

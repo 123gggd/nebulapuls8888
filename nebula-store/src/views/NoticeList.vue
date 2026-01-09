@@ -15,10 +15,13 @@
           <div v-for="item in noticeList" :key="item.id" class="notice-item">
             <div class="title-row">
               <el-tag size="small" type="warning" class="tag">通知</el-tag>
-              <span class="title">{{ item.title }}</span>
+              <span class="title" @click="goDetail(item.id)">{{ item.title }}</span>
               <span class="time">{{ item.createTime }}</span>
             </div>
             <div class="content">{{ item.content }}</div>
+            <div class="actions">
+              <el-button link type="primary" @click="goDetail(item.id)">查看详情</el-button>
+            </div>
           </div>
         </div>
 
@@ -30,10 +33,12 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { getNotices } from '@/api/store'
 
 const loading = ref(false)
 const noticeList = ref<any[]>([])
+const router = useRouter()
 
 const loadData = async () => {
   loading.value = true
@@ -50,6 +55,10 @@ const loadData = async () => {
 onMounted(() => {
   loadData()
 })
+
+const goDetail = (id: number) => {
+  router.push(`/notice/${id}`)
+}
 </script>
 
 <style scoped lang="scss">
@@ -88,6 +97,10 @@ onMounted(() => {
     font-size: 14px;
     padding-left: 55px; // 缩进以对齐标题
     white-space: pre-wrap; // 保留换行
+  }
+  .actions {
+    padding-left: 55px;
+    margin-top: 8px;
   }
 }
 </style>
