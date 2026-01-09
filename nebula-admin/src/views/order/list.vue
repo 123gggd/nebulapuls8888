@@ -23,9 +23,21 @@
             <el-option label="已退款" :value="6" />
           </el-select>
         </el-form-item>
+        <el-form-item label="时间范围">
+          <el-date-picker
+              v-model="dateRange"
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+          />
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" icon="Search" @click="handleSearch">查询</el-button>
           <el-button icon="Refresh" @click="resetQuery">重置</el-button>
+          <el-button type="info" plain @click="applyQuickRange('today')">今日</el-button>
+          <el-button type="info" plain @click="applyQuickRange('week')">本周</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -60,7 +72,29 @@
         </div>
       </div>
 
-      <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%">
+      <div class="status-chart">
+        <div class="chart-title">订单状态分布</div>
+        <div class="chart-bars">
+          <div class="bar-row" v-for="item in statusBars" :key="item.label">
+            <span class="bar-label">{{ item.label }}</span>
+            <div class="bar-track">
+              <div class="bar-fill" :style="{ width: item.percent + '%' }"></div>
+            </div>
+            <span class="bar-value">{{ item.count }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-toolbar">
+        <div class="selected-info">已选择 {{ selectedRows.length }} 笔订单</div>
+        <div class="toolbar-actions">
+          <el-button type="primary" :disabled="selectedRows.length === 0" @click="openBatchDeliver">批量发货</el-button>
+          <el-button @click="exportOrders">导出</el-button>
+        </div>
+      </div>
+
+      <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+        <el-table-column type="selection" width="55" align="center" />
         <el-table-column prop="orderNo" label="订单号" width="180" show-overflow-tooltip />
 
         <el-table-column label="订单金额" width="120" align="center">
@@ -207,6 +241,33 @@
       </template>
     </el-dialog>
 
+    <!-- 批量发货弹窗 -->
+    <el-dialog title="批量发货" v-model="batchVisible" width="700px">
+      <el-form label-width="80px">
+        <el-form-item label="物流公司">
+          <el-select v-model="batchLogisticsCompany" placeholder="请选择物流" style="width: 100%">
+            <el-option label="顺丰速运" value="顺丰速运" />
+            <el-option label="中通快递" value="中通快递" />
+            <el-option label="圆通速递" value="圆通速递" />
+            <el-option label="韵达快递" value="韵达快递" />
+            <el-option label="邮政EMS" value="邮政EMS" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <el-table :data="batchDeliverList" style="width: 100%">
+        <el-table-column prop="orderNo" label="订单号" width="200" />
+        <el-table-column label="物流单号">
+          <template #default="{ row }">
+            <el-input v-model="row.trackingNo" placeholder="请输入运单号" />
+          </template>
+        </el-table-column>
+      </el-table>
+      <template #footer>
+        <el-button @click="batchVisible = false">取消</el-button>
+        <el-button type="primary" @click="confirmBatchDeliver">确认发货</el-button>
+      </template>
+    </el-dialog>
+
     <!-- 售后审核弹窗 -->
     <el-dialog title="售后审核" v-model="auditVisible" width="500px">
       <el-form :model="auditForm" label-width="80px">
@@ -244,6 +305,8 @@ const loading = ref(false)
 const tableData = ref([])
 const total = ref(0)
 const activeTab = ref('-1')
+const dateRange = ref<string[]>([])
+const selectedRows = ref<any[]>([])
 
 const queryParams = reactive({
   page: 1,
@@ -255,6 +318,13 @@ const queryParams = reactive({
 const loadData = async () => {
   loading.value = true
   try {
+    if (dateRange.value.length === 2) {
+      queryParams.startDate = dateRange.value[0]
+      queryParams.endDate = dateRange.value[1]
+    } else {
+      delete (queryParams as any).startDate
+      delete (queryParams as any).endDate
+    }
     const res: any = await getOrderList(queryParams)
     tableData.value = res.data.records
     total.value = res.data.total
@@ -274,8 +344,41 @@ const statusStats = computed(() => {
   return stats
 })
 
+const statusBars = computed(() => {
+  const stats = statusStats.value
+  const max = Math.max(stats.pending, stats.toDeliver, stats.refunding, stats.completed, 1)
+  return [
+    { label: '待支付', count: stats.pending, percent: (stats.pending / max) * 100 },
+    { label: '待发货', count: stats.toDeliver, percent: (stats.toDeliver / max) * 100 },
+    { label: '售后中', count: stats.refunding, percent: (stats.refunding / max) * 100 },
+    { label: '已完成', count: stats.completed, percent: (stats.completed / max) * 100 }
+  ]
+})
+
 const handleSearch = () => { queryParams.page = 1; loadData() }
-const resetQuery = () => { queryParams.orderNo = ''; queryParams.status = null; activeTab.value = '-1'; handleSearch() }
+const resetQuery = () => {
+  queryParams.orderNo = ''
+  queryParams.status = null
+  activeTab.value = '-1'
+  dateRange.value = []
+  handleSearch()
+}
+
+const applyQuickRange = (type: 'today' | 'week') => {
+  const now = new Date()
+  if (type === 'today') {
+    const today = now.toISOString().slice(0, 10)
+    dateRange.value = [today, today]
+  } else {
+    const day = now.getDay() || 7
+    const start = new Date(now)
+    start.setDate(now.getDate() - day + 1)
+    const end = new Date(start)
+    end.setDate(start.getDate() + 6)
+    dateRange.value = [start.toISOString().slice(0, 10), end.toISOString().slice(0, 10)]
+  }
+  handleSearch()
+}
 
 const handleTabClick = () => {
   queryParams.status = activeTab.value === '-1' ? null : Number(activeTab.value)
@@ -323,6 +426,34 @@ const confirmDeliver = async () => {
   loadData()
 }
 
+const batchVisible = ref(false)
+const batchLogisticsCompany = ref('顺丰速运')
+const batchDeliverList = ref<{ orderNo: string; trackingNo: string }[]>([])
+
+const openBatchDeliver = () => {
+  batchDeliverList.value = selectedRows.value.map((row: any) => ({ orderNo: row.orderNo, trackingNo: '' }))
+  batchVisible.value = true
+}
+
+const confirmBatchDeliver = async () => {
+  if (batchDeliverList.value.some((item) => !item.trackingNo)) {
+    ElMessage.warning('请填写所有物流单号')
+    return
+  }
+  await Promise.all(
+    batchDeliverList.value.map((item) =>
+      deliverOrder({
+        orderNo: item.orderNo,
+        logisticsCompany: batchLogisticsCompany.value,
+        trackingNo: item.trackingNo
+      })
+    )
+  )
+  ElMessage.success('批量发货成功')
+  batchVisible.value = false
+  loadData()
+}
+
 // --- 审核逻辑 ---
 const auditVisible = ref(false)
 const currentOrder = ref<any>(null)
@@ -349,6 +480,16 @@ const confirmAudit = async () => {
   ElMessage.success(auditForm.pass ? '已同意退款' : '已拒绝退款申请')
   auditVisible.value = false
   loadData()
+}
+
+const exportOrders = () => {
+  const ids = selectedRows.value.map((row: any) => row.id).join(',')
+  const query = ids ? `?ids=${ids}` : ''
+  window.open(`/api/admin/order/export${query}`, '_blank')
+}
+
+const handleSelectionChange = (rows: any[]) => {
+  selectedRows.value = rows
 }
 
 // --- 状态工具 ---
@@ -396,6 +537,64 @@ onMounted(loadData)
     font-size: 20px;
     font-weight: 700;
     color: #0f172a;
+  }
+}
+
+.status-chart {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  .chart-title {
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #0f172a;
+  }
+  .chart-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 70px 1fr 40px;
+    align-items: center;
+    gap: 12px;
+  }
+  .bar-track {
+    background: #e2e8f0;
+    border-radius: 999px;
+    height: 8px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #60a5fa, #3b82f6);
+  }
+  .bar-label {
+    font-size: 12px;
+    color: #64748b;
+  }
+  .bar-value {
+    font-size: 12px;
+    text-align: right;
+    color: #0f172a;
+  }
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0 16px;
+  .selected-info {
+    font-size: 12px;
+    color: #64748b;
+  }
+  .toolbar-actions {
+    display: flex;
+    gap: 10px;
   }
 }
 </style>

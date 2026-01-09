@@ -28,6 +28,7 @@
               应付金额：<span>¥ {{ orderInfo.totalAmount }}</span>
             </div>
           </div>
+          <el-progress :percentage="progressPercent" :stroke-width="6" class="timer-progress" />
 
           <div class="pay-grid">
             <div class="left-panel">
@@ -61,6 +62,13 @@
                   <li>请确保支付设备网络稳定</li>
                 </ul>
               </div>
+              <el-alert
+                title="支付完成后将自动刷新订单状态，请勿重复支付。"
+                type="success"
+                show-icon
+                :closable="false"
+                class="pay-alert"
+              />
             </div>
 
             <div class="right-panel">
@@ -112,10 +120,12 @@ const payType = ref('wechat')
 const paying = ref(false)
 const pageLoading = ref(true)
 const orderInfo = ref<any>(null)
-const timeLeft = ref(1800) // 30分钟倒计时
+const initialTime = 1800
+const timeLeft = ref(initialTime) // 30分钟倒计时
 let timer: any = null
 
 const isTradePay = computed(() => !!tradeNoParam)
+const progressPercent = computed(() => Math.max(0, Math.min(100, (timeLeft.value / initialTime) * 100)))
 
 const initData = async () => {
   if (!tradeNoParam && !orderNoParam) {
@@ -249,6 +259,10 @@ onUnmounted(() => {
   }
 }
 
+.timer-progress {
+  margin-top: 12px;
+}
+
 .pay-grid {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -299,6 +313,11 @@ onUnmounted(() => {
   border: 1px dashed #cbd5f5;
   h4 { margin: 0 0 10px; font-size: 14px; }
   ul { margin: 0; padding-left: 18px; color: #64748b; font-size: 13px; line-height: 1.7; }
+}
+
+.pay-alert {
+  margin-top: 16px;
+  border-radius: 10px;
 }
 
 .right-panel {

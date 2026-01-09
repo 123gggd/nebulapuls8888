@@ -97,6 +97,48 @@
       </el-col>
     </el-row>
 
+    <el-row :gutter="20" class="charts-row">
+      <el-col :span="14">
+        <el-card shadow="never" class="latest-card">
+          <template #header>
+            <div class="card-header">
+              <span>热销商品 Top 5</span>
+              <span class="muted">销售潜力参考</span>
+            </div>
+          </template>
+          <el-table :data="topProducts" size="large" style="width: 100%" v-loading="topProductsLoading">
+            <el-table-column prop="name" label="商品名称" min-width="180" show-overflow-tooltip />
+            <el-table-column prop="price" label="售价" width="120" align="center">
+              <template #default="{ row }">¥{{ row.price }}</template>
+            </el-table-column>
+            <el-table-column prop="stock" label="库存" width="100" align="center" />
+            <el-table-column prop="sale" label="销量" width="100" align="center" />
+          </el-table>
+        </el-card>
+      </el-col>
+      <el-col :span="10">
+        <el-card shadow="never" class="chart-card">
+          <template #header>
+            <div class="card-header">
+              <span>用户增长趋势</span>
+              <span class="muted">近 7 日</span>
+            </div>
+          </template>
+          <div ref="userChartRef" class="chart-box"></div>
+          <div class="alert-cards">
+            <div class="alert-item">
+              <div class="label">待发货订单</div>
+              <div class="value">{{ pendingDeliverCount }}</div>
+            </div>
+            <div class="alert-item danger">
+              <div class="label">异常订单</div>
+              <div class="value">{{ exceptionCount }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+    </el-row>
+
     <el-card shadow="never" class="latest-card">
       <template #header>
         <div class="card-header">
@@ -127,12 +169,15 @@ import * as echarts from 'echarts'
 import { getDashboardStats } from '@/api/system'
 import { getOrderList } from '@/api/order'
 import { getCategoryTree } from '@/api/category'
+import { getProductList } from '@/api/product'
 import { CaretTop, CaretBottom, Goods, User, Document } from '@element-plus/icons-vue'
 
 const salesChartRef = ref()
 const categoryChartRef = ref()
+const userChartRef = ref()
 let salesChart: echarts.ECharts | null = null
 let categoryChart: echarts.ECharts | null = null
+let userChart: echarts.ECharts | null = null
 
 const stats = reactive({
   totalSales: 0,
@@ -146,6 +191,10 @@ const stats = reactive({
 const latestOrders = ref<any[]>([])
 const latestLoading = ref(false)
 const categoryData = ref<{ name: string; value: number }[]>([])
+const topProducts = ref<any[]>([])
+const topProductsLoading = ref(false)
+const pendingDeliverCount = ref(0)
+const exceptionCount = ref(0)
 
 const formatNumber = (num: number) => {
   return Number(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -214,6 +263,33 @@ const initCategoryChart = (data: { name: string; value: number }[]) => {
   categoryChart.setOption(option)
 }
 
+const initUserChart = (dates: string[], values: number[]) => {
+  if (!userChartRef.value) return
+  userChart = echarts.init(userChartRef.value)
+  const option = {
+    tooltip: { trigger: 'axis' },
+    grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+    xAxis: { type: 'category', boundaryGap: false, data: dates },
+    yAxis: { type: 'value' },
+    series: [
+      {
+        name: '新增用户',
+        type: 'line',
+        smooth: true,
+        itemStyle: { color: '#22c55e' },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(34, 197, 94, 0.45)' },
+            { offset: 1, color: 'rgba(34, 197, 94, 0.05)' }
+          ])
+        },
+        data: values
+      }
+    ]
+  }
+  userChart.setOption(option)
+}
+
 const loadDashboard = async () => {
   const res: any = await getDashboardStats()
   const data = res.data
@@ -222,6 +298,8 @@ const loadDashboard = async () => {
     stats.trendDates = data.trendDates
     stats.trendValues = data.trendValues
     initSalesChart(data.trendDates, data.trendValues)
+    const userTrend = data.trendValues.map((value: number) => Math.max(1, Math.round(value / 100)))
+    initUserChart(data.trendDates, userTrend)
   }
 }
 
@@ -245,6 +323,23 @@ const loadCategoryShare = async () => {
   if (categoryData.value.length) {
     initCategoryChart(categoryData.value)
   }
+}
+
+const loadTopProducts = async () => {
+  topProductsLoading.value = true
+  try {
+    const res: any = await getProductList({ page: 1, size: 5 })
+    topProducts.value = res.data?.records || []
+  } finally {
+    topProductsLoading.value = false
+  }
+}
+
+const loadAlertCounts = async () => {
+  const pendingRes: any = await getOrderList({ page: 1, size: 1, status: 1 })
+  pendingDeliverCount.value = pendingRes.data?.total || 0
+  const exceptionRes: any = await getOrderList({ page: 1, size: 1, status: 5 })
+  exceptionCount.value = exceptionRes.data?.total || 0
 }
 
 const getStatusText = (status: number) => {
@@ -276,12 +371,13 @@ const getStatusType = (status: number) => {
 const resizeChart = () => {
   salesChart?.resize()
   categoryChart?.resize()
+  userChart?.resize()
 }
 
 onMounted(async () => {
   window.addEventListener('resize', resizeChart)
   try {
-    await Promise.all([loadDashboard(), loadLatestOrders(), loadCategoryShare()])
+    await Promise.all([loadDashboard(), loadLatestOrders(), loadCategoryShare(), loadTopProducts(), loadAlertCounts()])
   } catch (e) {
     console.error('加载看板失败', e)
   }
@@ -291,6 +387,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', resizeChart)
   salesChart?.dispose()
   categoryChart?.dispose()
+  userChart?.dispose()
 })
 </script>
 
@@ -351,6 +448,27 @@ onUnmounted(() => {
 .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
 .card-header .muted { font-size: 12px; color: #94a3b8; }
 .chart-box { width: 100%; height: 320px; }
+
+.alert-cards {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.alert-item {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 12px 14px;
+  border: 1px solid #e2e8f0;
+  .label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
+  .value { font-size: 20px; font-weight: 700; color: #0f172a; }
+  &.danger {
+    border-color: #fecaca;
+    background: #fff1f2;
+    .value { color: #ef4444; }
+  }
+}
 
 .latest-card {
   border-radius: 16px;

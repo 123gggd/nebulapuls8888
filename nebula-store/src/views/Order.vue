@@ -28,6 +28,27 @@
           </div>
         </div>
 
+        <div class="filter-row">
+          <el-date-picker
+            v-model="dateRange"
+            type="daterange"
+            range-separator="至"
+            start-placeholder="开始日期"
+            end-placeholder="结束日期"
+            value-format="YYYY-MM-DD"
+          />
+          <el-select v-model="statusFilter" placeholder="订单状态" clearable style="width: 160px">
+            <el-option label="待支付" :value="0" />
+            <el-option label="待发货" :value="1" />
+            <el-option label="已发货" :value="2" />
+            <el-option label="已完成" :value="3" />
+            <el-option label="售后中" :value="5" />
+            <el-option label="已退款" :value="6" />
+          </el-select>
+          <el-button type="primary" @click="applyFilters">筛选</el-button>
+          <el-button @click="resetFilters">重置</el-button>
+        </div>
+
         <el-tabs v-model="activeTab" class="status-tabs" @tab-click="handleTabClick">
           <el-tab-pane label="全部订单" name="-1" />
           <el-tab-pane label="待支付" name="0" />
@@ -84,7 +105,7 @@
           </el-table-column>
         </el-table>
 
-        <el-empty v-if="!loading && tableData.length === 0" description="还没有订单，去首页逛逛吧" class="empty-state">
+        <EmptyState v-if="!loading && tableData.length === 0" description="还没有订单，去首页逛逛吧" action-text="去首页" action-to="/">
           <template #image>
             <svg viewBox="0 0 220 160" aria-hidden="true" class="empty-illustration">
               <defs>
@@ -98,8 +119,22 @@
               <path d="M70 66h80M70 82h60M70 98h40" stroke="#fff" stroke-width="6" stroke-linecap="round" />
             </svg>
           </template>
-          <el-button type="primary" @click="router.push('/')">去首页</el-button>
-        </el-empty>
+          <div class="recommendations" v-if="recommendedProducts.length">
+            <div class="recommend-title">为你推荐</div>
+            <div class="recommend-grid">
+              <div
+                v-for="item in recommendedProducts"
+                :key="item.id"
+                class="recommend-item"
+                @click="router.push(`/product/${item.id}`)"
+              >
+                <el-image :src="item.mainImage" fit="cover" class="recommend-image" />
+                <div class="recommend-name">{{ item.name }}</div>
+                <div class="recommend-price">¥{{ item.price }}</div>
+              </div>
+            </div>
+          </div>
+        </EmptyState>
 
         <div class="pagination-box" v-if="total > 0">
           <el-pagination
@@ -115,6 +150,14 @@
 
       <el-dialog v-model="detailVisible" title="订单详情" width="600px" destroy-on-close>
         <div v-if="currentOrderVo" class="detail-box">
+          <div class="section-title">订单进度</div>
+          <el-steps :active="orderStepActive" align-center>
+            <el-step title="下单" :description="currentOrderVo?.order?.createTime || '待更新'" />
+            <el-step title="支付" :description="currentOrderVo?.order?.payTime || '待支付'" />
+            <el-step title="发货" :description="currentOrderVo?.order?.deliverTime || '待发货'" />
+            <el-step title="收货" :description="currentOrderVo?.order?.receiveTime || '待收货'" />
+          </el-steps>
+
           <div class="section-title">收货信息</div>
           <div class="info-grid">
             <div class="item"><span class="label">收货人：</span>{{ currentOrderVo?.order?.receiverName }}</div>
@@ -206,9 +249,10 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
-import { getMyOrders, receiveOrder, cancelOrder, submitReview, getOrderDetailByNo, applyRefund } from '@/api/store'
+import { getMyOrders, receiveOrder, cancelOrder, submitReview, getOrderDetailByNo, applyRefund, searchProducts } from '@/api/store'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
+import EmptyState from '@/components/EmptyState.vue'
 
 // 接口定义：确保与 Template 使用的字段一致
 interface OrderItem {
@@ -246,6 +290,9 @@ interface OrderVO {
     receiverAddress: string
     createTime: string
     refundReason?: string
+    payTime?: string
+    deliverTime?: string
+    receiveTime?: string
   }
   items: OrderItem[]
 }
@@ -254,8 +301,11 @@ const router = useRouter()
 const tableData = ref<Order[]>([])
 const loading = ref(false)
 const total = ref(0)
-const queryParams = reactive({ page: 1, size: 10, status: null as number | null })
+const queryParams = reactive({ page: 1, size: 10, status: null as number | null, startDate: '', endDate: '' })
 const activeTab = ref('-1')
+const dateRange = ref<string[]>([])
+const statusFilter = ref<number | null>(null)
+const recommendedProducts = ref<any[]>([])
 
 // 详情 & 评价
 const detailVisible = ref(false)
@@ -271,6 +321,13 @@ const refundForm = reactive({ orderNo: '', reason: '' })
 const loadData = async () => {
   loading.value = true
   try {
+    if (dateRange.value.length === 2) {
+      queryParams.startDate = dateRange.value[0]
+      queryParams.endDate = dateRange.value[1]
+    } else {
+      queryParams.startDate = ''
+      queryParams.endDate = ''
+    }
     // 使用 any 绕过分页结构类型检查，或定义 PageResult 接口
     const res: any = await getMyOrders(queryParams)
     // [修复] records 变量解析修复：确保 res 存在
@@ -280,6 +337,15 @@ const loadData = async () => {
     console.error(e)
   } finally {
     loading.value = false
+  }
+}
+
+const loadRecommendations = async () => {
+  try {
+    const res: any = await searchProducts({ page: 1, size: 4 })
+    recommendedProducts.value = res.records || []
+  } catch (e) {
+    recommendedProducts.value = []
   }
 }
 
@@ -296,9 +362,33 @@ const statusStats = computed(() => {
 
 const handleTabClick = () => {
   queryParams.status = activeTab.value === '-1' ? null : Number(activeTab.value)
+  statusFilter.value = queryParams.status
   queryParams.page = 1
   loadData()
 }
+
+const applyFilters = () => {
+  queryParams.page = 1
+  queryParams.status = statusFilter.value
+  activeTab.value = statusFilter.value === null ? '-1' : String(statusFilter.value)
+  loadData()
+}
+
+const resetFilters = () => {
+  dateRange.value = []
+  statusFilter.value = null
+  activeTab.value = '-1'
+  applyFilters()
+}
+
+const orderStepActive = computed(() => {
+  const status = currentOrderVo.value?.order?.status ?? 0
+  if (status === 0) return 1
+  if (status === 1) return 2
+  if (status === 2) return 3
+  if (status >= 3) return 4
+  return 1
+})
 
 const getStatusText = (status: number) => {
   const map: Record<number, string> = {
@@ -403,6 +493,7 @@ const submitReviewForm = async () => {
 }
 
 onMounted(() => { loadData() })
+onMounted(() => { loadRecommendations() })
 </script>
 
 <style scoped lang="scss">
@@ -433,6 +524,14 @@ onMounted(() => { loadData() })
   }
 }
 
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
 .status-tabs { margin: 10px 0 20px; }
 
 .pagination-box { margin-top: 20px; display: flex; justify-content: flex-end; }
@@ -451,14 +550,44 @@ onMounted(() => { loadData() })
 }
 .amount { color: #f56c6c; font-weight: bold; }
 
-.empty-state {
-  padding: 30px 0;
-  .empty-illustration {
-    width: 180px;
-    height: auto;
+.recommendations {
+  margin-top: 20px;
+  text-align: left;
+  .recommend-title {
+    font-weight: 600;
     margin-bottom: 10px;
+    color: #0f172a;
+  }
+  .recommend-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .recommend-item {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+    }
+  }
+  .recommend-image { width: 100%; height: 90px; border-radius: 8px; }
+  .recommend-name {
+    font-size: 12px;
+    margin-top: 8px;
+    color: #334155;
+  }
+  .recommend-price {
+    margin-top: 4px;
+    color: #ef4444;
+    font-weight: 600;
   }
 }
+
 
 /* 详情弹窗 */
 .detail-box {

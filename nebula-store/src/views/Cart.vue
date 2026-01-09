@@ -100,7 +100,7 @@
           </div>
         </div>
 
-        <el-empty v-else description="购物车空空如也，快去逛逛吧" class="empty-state">
+        <EmptyState v-else description="购物车空空如也，快去逛逛吧" action-text="去首页" action-to="/">
           <template #image>
             <svg viewBox="0 0 220 160" aria-hidden="true" class="empty-illustration">
               <defs>
@@ -116,8 +116,7 @@
               <path d="M74 42h72" stroke="#94a3b8" stroke-width="6" stroke-linecap="round" />
             </svg>
           </template>
-          <el-button type="primary" @click="router.push('/')">去首页</el-button>
-        </el-empty>
+        </EmptyState>
       </el-card>
 
       <!-- 结算弹窗 -->
@@ -185,6 +184,7 @@ import request from '@/utils/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import { InfoFilled } from '@element-plus/icons-vue'
+import EmptyState from '@/components/EmptyState.vue'
 
 // [核心修复] 定义明确的 CartItem 接口
 interface CartItem {
@@ -459,130 +459,7 @@ onMounted(() => {
 .unit-price { font-weight: bold; color: #303133; }
 .subtotal { color: #f56c6c; font-weight: bold; }
 
-.empty-state {
-  padding: 30px 0;
-  .empty-illustration {
-    width: 180px;
-    height: auto;
-    margin-bottom: 10px;
-  }
-}
 .disabled-text { font-size: 12px; color: #999; }
 
 .cart-footer {
-  margin-top: 30px;
-  padding-top: 20px;
-  border-top: 1px solid #f0f0f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .right-calc {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .total-info {
-    font-size: 14px;
-    color: #606266;
-    .count { color: #f56c6c; font-weight: bold; margin: 0 4px; }
-    .price {
-      font-size: 28px;
-      color: #f56c6c;
-      font-weight: 800;
-      margin-left: 10px;
-      small { font-size: 16px; }
-    }
-  }
-
-  .checkout-btn {
-    width: 140px;
-    font-weight: bold;
-    font-size: 16px;
-    letter-spacing: 1px;
-  }
-}
-
-/* 弹窗样式 */
-.address-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  width: 100%;
-  .address-item {
-    width: 100%;
-    margin-right: 0;
-    height: auto;
-    padding: 12px;
-    border-radius: 6px;
-    &.is-checked {
-      background-color: #ecf5ff;
-      border-color: #409EFF;
-    }
-    .addr-content {
-      line-height: 1.6;
-      .name { font-weight: bold; margin-right: 10px; font-size: 14px; }
-      .phone { color: #666; font-size: 13px; }
-      .detail { color: #909399; font-size: 12px; margin-top: 2px; }
-    }
-  }
-}
-.manage-addr-btn { margin-top: 8px; font-size: 12px; }
-
-.price-summary {
-  background: #f8f8f8;
-  padding: 15px 20px;
-  border-radius: 6px;
-  margin-top: 25px;
-  text-align: right;
-
-  .row {
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #606266;
-    display: flex;
-    justify-content: space-between;
-
-    &.coupon-row { color: #f56c6c; }
-    &.total-row {
-      margin-top: 15px;
-      padding-top: 15px;
-      border-top: 1px dashed #e4e7ed;
-      font-size: 16px;
-      color: #303133;
-      font-weight: bold;
-      align-items: center;
-      .final-price {
-        color: #f56c6c;
-        font-size: 24px;
-      }
-    }
-  }
-}
-.coupon-tip {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 6px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-.section-title {
-  font-size: 15px;
-  font-weight: bold;
-  color: #303133;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  &::before {
-    content: '';
-    display: block;
-    width: 4px;
-    height: 14px;
-    background: #409EFF;
-    margin-right: 8px;
-    border-radius: 2px;
-  }
-}
-</style>
+  margin-top:

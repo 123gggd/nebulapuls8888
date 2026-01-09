@@ -45,6 +45,24 @@
               <span>7 天无忧退换</span>
             </div>
 
+            <!-- 规格选择（合并自 codex 分支） -->
+            <div class="specs-block" v-if="specEntries.length">
+              <div class="spec-row" v-for="[specName, options] in specEntries" :key="specName">
+                <span class="spec-label">{{ specName }}</span>
+                <div class="spec-options">
+                  <span
+                    v-for="option in options"
+                    :key="option"
+                    class="spec-option"
+                    :class="{ active: selectedSpecs[specName] === option }"
+                    @click="selectedSpecs[specName] = option"
+                  >
+                    {{ option }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
             <div class="price-box">
               <span class="label">价格</span>
               <div class="price-wrap">
@@ -74,12 +92,7 @@
             <div class="action-area">
               <div class="quantity-box">
                 <span class="label">数量</span>
-                <el-input-number
-                  v-model="quantity"
-                  :min="1"
-                  :max="product.stock"
-                  size="large"
-                />
+                <el-input-number v-model="quantity" :min="1" :max="product.stock" size="large" />
               </div>
 
               <div class="btn-group">
@@ -93,6 +106,16 @@
 
               <div class="tip-row">
                 <span>24 小时内发货 · 支持开具电子发票</span>
+              </div>
+
+              <!-- 服务说明（合并自 codex 分支） -->
+              <div class="service-notice">
+                <div>
+                  <strong>物流说明：</strong>默认顺丰/京东物流，预计 2-5 天送达。
+                </div>
+                <div>
+                  <strong>售后保障：</strong>质量问题支持 7 天无忧退换。
+                </div>
               </div>
             </div>
           </div>
@@ -112,7 +135,13 @@
               <div v-if="reviews.length > 0" class="review-list">
                 <div v-for="item in reviews" :key="item.id" class="review-item">
                   <div class="user-info">
-                    <el-avatar :size="40" :src="item.userAvatar || 'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'" />
+                    <el-avatar
+                      :size="40"
+                      :src="
+                        item.userAvatar ||
+                        'https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png'
+                      "
+                    />
                     <div class="user-meta">
                       <div class="username">{{ item.userName || '匿名用户' }}</div>
                     </div>
@@ -136,7 +165,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { getProductDetail, addToCart, getProductReviews } from '@/api/store'
 import { ElMessage } from 'element-plus'
@@ -155,6 +184,8 @@ interface ProductDetail {
   description?: string
   originalPrice?: number
   subImages?: string[]
+  // 合并自 codex：规格
+  specifications?: Record<string, string[]>
   [key: string]: any
 }
 
@@ -182,6 +213,15 @@ const activeTab = ref('detail')
 const galleryImages = ref<string[]>([])
 const activeImage = ref('')
 
+// 合并自 codex：规格选择状态
+const selectedSpecs = ref<Record<string, string>>({})
+
+// 规格 entries：[[specName, options], ...]
+const specEntries = computed<[string, string[]][]>(() => {
+  const specs = product.value.specifications || {}
+  return Object.entries(specs).map(([key, value]) => [key, value as string[]])
+})
+
 const loadData = async () => {
   const id = Number(route.params.id)
   if (!id) return
@@ -192,6 +232,13 @@ const loadData = async () => {
     product.value = res
     galleryImages.value = [res.mainImage, ...(res.subImages || [])].filter(Boolean)
     activeImage.value = galleryImages.value[0] || ''
+
+    // 初始化默认规格（每个规格默认选第一个）
+    selectedSpecs.value = {}
+    specEntries.value.forEach(([specName, options]) => {
+      if (options?.length) selectedSpecs.value[specName] = options[0]
+    })
+
     loadReviews(id)
   } catch (error) {
     console.error(error)
@@ -226,6 +273,8 @@ const handleAddToCart = async () => {
     return
   }
   try {
+    // 如果你后端需要规格参数，可把 selectedSpecs 一起传：
+    // await addToCart({ productId: product.value.id, quantity: quantity.value, specifications: selectedSpecs.value })
     await addToCart({ productId: product.value.id, quantity: quantity.value })
     ElMessage.success('成功加入购物车')
   } catch (e) {
@@ -240,6 +289,7 @@ const handleBuyNow = async () => {
     return
   }
   try {
+    // 同上：如需要规格，附加 specifications: selectedSpecs.value
     await addToCart({ productId: product.value.id, quantity: quantity.value })
     router.push('/cart')
   } catch (e) {
@@ -251,12 +301,15 @@ onMounted(() => {
   loadData()
 })
 
-watch(() => route.params.id, (newId) => {
-  if (newId) {
-    quantity.value = 1
-    loadData()
+watch(
+  () => route.params.id,
+  (newId) => {
+    if (newId) {
+      quantity.value = 1
+      loadData()
+    }
   }
-})
+)
 </script>
 
 <style scoped lang="scss">
@@ -310,9 +363,13 @@ watch(() => route.params.id, (newId) => {
     overflow: hidden;
     border: 2px solid transparent;
     cursor: pointer;
-    img { width: 100%; height: 100%; object-fit: cover; }
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
     &.active {
-      border-color: #409EFF;
+      border-color: #409eff;
       box-shadow: 0 6px 14px rgba(64, 158, 255, 0.2);
     }
   }
@@ -343,6 +400,52 @@ watch(() => route.params.id, (newId) => {
       border-radius: 999px;
     }
   }
+
+  /* 合并自 codex：规格样式 */
+  .specs-block {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 18px;
+    .spec-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+    .spec-label {
+      width: 70px;
+      color: #64748b;
+      font-size: 13px;
+    }
+    .spec-options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .spec-option {
+      padding: 6px 12px;
+      border-radius: 999px;
+      border: 1px solid #e2e8f0;
+      cursor: pointer;
+      font-size: 13px;
+      color: #475569;
+      transition: all 0.2s ease;
+      &:hover {
+        border-color: #409eff;
+        color: #409eff;
+      }
+      &.active {
+        background: #409eff;
+        border-color: #409eff;
+        color: #fff;
+      }
+    }
+  }
+
   .price-box {
     background: #fff5f5;
     padding: 20px;
@@ -351,16 +454,28 @@ watch(() => route.params.id, (newId) => {
     display: flex;
     align-items: baseline;
     gap: 15px;
-    .label { font-size: 14px; color: #606266; }
+    .label {
+      font-size: 14px;
+      color: #606266;
+    }
     .price-wrap {
       color: #f56c6c;
       font-weight: bold;
       display: flex;
       align-items: baseline;
       gap: 12px;
-      .currency { font-size: 16px; margin-right: 2px; }
-      .price { font-size: 32px; }
-      .origin { font-size: 14px; color: #94a3b8; text-decoration: line-through; }
+      .currency {
+        font-size: 16px;
+        margin-right: 2px;
+      }
+      .price {
+        font-size: 32px;
+      }
+      .origin {
+        font-size: 14px;
+        color: #94a3b8;
+        text-decoration: line-through;
+      }
     }
   }
   .meta-info {
@@ -370,7 +485,10 @@ watch(() => route.params.id, (newId) => {
     .meta-item {
       font-size: 14px;
       color: #606266;
-      .label { margin-right: 10px; color: #909399; }
+      .label {
+        margin-right: 10px;
+        color: #909399;
+      }
     }
   }
   .action-area {
@@ -380,7 +498,10 @@ watch(() => route.params.id, (newId) => {
       display: flex;
       align-items: center;
       gap: 15px;
-      .label { font-size: 14px; color: #606266; }
+      .label {
+        font-size: 14px;
+        color: #606266;
+      }
     }
     .btn-group {
       display: flex;
@@ -391,6 +512,18 @@ watch(() => route.params.id, (newId) => {
       font-size: 12px;
       color: #94a3b8;
     }
+
+    /* 合并自 codex：服务说明样式 */
+    .service-notice {
+      margin-top: 12px;
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.7;
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px dashed #cbd5f5;
+    }
   }
 }
 .detail-content {
@@ -400,7 +533,9 @@ watch(() => route.params.id, (newId) => {
   .product-desc {
     padding: 20px;
     line-height: 1.8;
-    :deep(img) { max-width: 100%; }
+    :deep(img) {
+      max-width: 100%;
+    }
   }
 }
 .review-item {
@@ -408,11 +543,17 @@ watch(() => route.params.id, (newId) => {
   padding: 20px;
   display: flex;
   gap: 20px;
-  &:last-child { border-bottom: none; }
+  &:last-child {
+    border-bottom: none;
+  }
   .user-info {
     width: 100px;
     text-align: center;
-    .username { font-size: 12px; color: #666; margin-top: 5px; }
+    .username {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
   }
   .review-content {
     flex: 1;
@@ -420,9 +561,16 @@ watch(() => route.params.id, (newId) => {
       display: flex;
       justify-content: space-between;
       margin-bottom: 8px;
-      .time { color: #ccc; font-size: 12px; }
+      .time {
+        color: #ccc;
+        font-size: 12px;
+      }
     }
-    .text { color: #333; font-size: 14px; line-height: 1.6; }
+    .text {
+      color: #333;
+      font-size: 14px;
+      line-height: 1.6;
+    }
   }
 }
 </style>
