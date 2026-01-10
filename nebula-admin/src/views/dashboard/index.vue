@@ -220,20 +220,26 @@ const initSalesChart = (dates: string[], values: number[]) => {
   salesChart = echarts.init(salesChartRef.value)
 
   const option = {
+    color: ['#4f8bff'],
+    animationDuration: 1200,
+    animationEasing: 'cubicOut',
+    animationDurationUpdate: 800,
     tooltip: { trigger: 'axis' },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: { type: 'category', boundaryGap: false, data: dates },
-    yAxis: { type: 'value' },
+    xAxis: { type: 'category', boundaryGap: false, data: dates, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+    yAxis: { type: 'value', axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { lineStyle: { color: '#eef2f7' } } },
     series: [
       {
         name: '销售额',
         type: 'line',
         smooth: true,
-        itemStyle: { color: '#409EFF' },
+        symbolSize: 8,
+        lineStyle: { width: 3, color: '#4f8bff' },
+        itemStyle: { color: '#4f8bff' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(64, 158, 255, 0.5)' },
-            { offset: 1, color: 'rgba(64, 158, 255, 0.01)' }
+            { offset: 0, color: 'rgba(79, 139, 255, 0.45)' },
+            { offset: 1, color: 'rgba(79, 139, 255, 0.04)' }
           ])
         },
         data: values
@@ -247,15 +253,20 @@ const initCategoryChart = (data: { name: string; value: number }[]) => {
   if (!categoryChartRef.value) return
   categoryChart = echarts.init(categoryChartRef.value)
   const option = {
+    color: ['#4f8bff', '#38bdf8', '#a855f7', '#22c55e', '#f97316', '#facc15'],
+    animationDuration: 1200,
+    animationEasing: 'cubicOut',
+    animationDurationUpdate: 800,
     tooltip: { trigger: 'item' },
-    legend: { bottom: '0%', left: 'center' },
+    legend: { bottom: '0%', left: 'center', textStyle: { color: '#64748b' } },
     series: [
       {
         name: '品类占比',
         type: 'pie',
         radius: ['45%', '70%'],
-        itemStyle: { borderRadius: 8, borderColor: '#fff', borderWidth: 2 },
+        itemStyle: { borderRadius: 12, borderColor: 'rgba(255,255,255,0.7)', borderWidth: 2 },
         label: { formatter: '{b}\n{d}%' },
+        emphasis: { scale: true, scaleSize: 8 },
         data
       }
     ]
@@ -267,15 +278,21 @@ const initUserChart = (dates: string[], values: number[]) => {
   if (!userChartRef.value) return
   userChart = echarts.init(userChartRef.value)
   const option = {
+    color: ['#22c55e'],
+    animationDuration: 1200,
+    animationEasing: 'cubicOut',
+    animationDurationUpdate: 800,
     tooltip: { trigger: 'axis' },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: { type: 'category', boundaryGap: false, data: dates },
-    yAxis: { type: 'value' },
+    xAxis: { type: 'category', boundaryGap: false, data: dates, axisLine: { lineStyle: { color: '#e2e8f0' } } },
+    yAxis: { type: 'value', axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { lineStyle: { color: '#eef2f7' } } },
     series: [
       {
         name: '新增用户',
         type: 'line',
         smooth: true,
+        symbolSize: 8,
+        lineStyle: { width: 3, color: '#22c55e' },
         itemStyle: { color: '#22c55e' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
@@ -396,8 +413,10 @@ onUnmounted(() => {
 .stats-row .el-card { height: 100%; }
 .stat-card {
   border-radius: 16px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 .stat-header {
   display: flex;
@@ -442,8 +461,10 @@ onUnmounted(() => {
 
 .chart-card {
   border-radius: 16px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: 600; }
 .card-header .muted { font-size: 12px; color: #94a3b8; }
@@ -457,22 +478,24 @@ onUnmounted(() => {
 }
 
 .alert-item {
-  background: #f8fafc;
+  background: rgba(248, 250, 252, 0.7);
   border-radius: 12px;
   padding: 12px 14px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgba(226, 232, 240, 0.7);
   .label { font-size: 12px; color: #94a3b8; margin-bottom: 6px; }
   .value { font-size: 20px; font-weight: 700; color: #0f172a; }
   &.danger {
-    border-color: #fecaca;
-    background: #fff1f2;
+    border-color: rgba(254, 202, 202, 0.8);
+    background: rgba(255, 241, 242, 0.7);
     .value { color: #ef4444; }
   }
 }
 
 .latest-card {
   border-radius: 16px;
-  border: none;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
 }
 </style>

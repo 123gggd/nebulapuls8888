@@ -139,7 +139,7 @@ const handleCommand = (command: string) => {
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: #eef1f6;
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(236, 242, 255, 0.9));
 }
 
 /* 侧边栏样式 */
@@ -150,7 +150,7 @@ const handleCommand = (command: string) => {
   transition: width 0.28s;
   display: flex;
   flex-direction: column;
-  box-shadow: 6px 0 20px rgba(15, 23, 42, 0.15);
+  box-shadow: 10px 0 30px rgba(15, 23, 42, 0.18);
 }
 
 .logo-container {
@@ -201,9 +201,10 @@ const handleCommand = (command: string) => {
   height: 56px;
   overflow: hidden;
   position: relative;
-  background: rgba(255, 255, 255, 0.96);
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -221,12 +222,13 @@ const handleCommand = (command: string) => {
   cursor: pointer;
   padding: 6px 10px;
   border-radius: 8px;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .avatar-wrapper:hover {
   background: rgba(64, 158, 255, 0.08);
   box-shadow: 0 6px 16px rgba(64, 158, 255, 0.15);
+  transform: translateY(-1px);
 }
 
 .user-name {
@@ -245,16 +247,18 @@ const handleCommand = (command: string) => {
 /* 动画 */
 .fade-transform-leave-active,
 .fade-transform-enter-active {
-  transition: all .35s ease;
+  transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .fade-transform-enter-from {
   opacity: 0;
-  transform: translateY(10px);
+  transform: translateY(16px) scale(0.98);
+  filter: blur(4px);
 }
 
 .fade-transform-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(-12px) scale(0.98);
+  filter: blur(4px);
 }
 </style>

@@ -101,7 +101,7 @@
               :http-request="handleUploadImage"
               :before-upload="beforeUpload"
           >
-            <img v-if="form.image" :src="form.image" class="avatar" />
+            <img v-if="form.image" :src="form.image" class="avatar hover-zoom" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
         </el-form-item>
