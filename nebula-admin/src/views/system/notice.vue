@@ -12,62 +12,57 @@
       </el-form>
     </el-card>
 
-    <el-card shadow="never">
-      <el-table :data="tableData" border v-loading="loading" stripe>
-        <el-table-column prop="id" label="ID" width="80" align="center" />
-
-        <el-table-column prop="title" label="标题" min-width="200" show-overflow-tooltip />
-
-        <el-table-column prop="content" label="内容摘要" min-width="300">
-          <template #default="{ row }">
-            <span class="text-truncate">{{ row.content }}</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="sort" label="排序" width="80" align="center" />
-
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'">
-              {{ row.status === 1 ? '已发布' : '草稿' }}
+    <div class="notice-board" v-loading="loading">
+      <transition-group name="notice-fade" tag="div" class="notice-grid">
+        <div
+          v-for="item in tableData"
+          :key="item.id"
+          class="notice-card"
+          :class="{ 'is-urgent': isUrgent(item), 'is-pinned': isPinned(item) }"
+          @click="handleEdit(item)"
+        >
+          <div class="notice-card__header">
+            <div class="notice-title">
+              <span v-if="isPinned(item)" class="notice-pin" aria-hidden="true" />
+              <h3>{{ item.title }}</h3>
+            </div>
+            <el-tag :type="item.status === 1 ? 'success' : 'info'" size="small">
+              {{ item.status === 1 ? '已发布' : '草稿' }}
             </el-tag>
-          </template>
-        </el-table-column>
+          </div>
+          <p class="notice-content">{{ item.content }}</p>
+          <div class="notice-card__meta">
+            <span>排序 {{ item.sort }}</span>
+            <span>{{ item.createTime }}</span>
+          </div>
+          <div class="notice-card__actions" @click.stop>
+            <el-button link type="primary" @click="handleEdit(item)">编辑</el-button>
+            <el-button link type="danger" @click="handleDelete(item)">删除</el-button>
+          </div>
+        </div>
+      </transition-group>
 
-        <el-table-column prop="createTime" label="创建时间" width="180" align="center" />
+      <el-empty v-if="!tableData.length && !loading" description="暂无公告" />
+    </div>
 
-        <el-table-column label="操作" width="150" align="center" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="handleEdit(row)">编辑</el-button>
-            <el-button link type="danger" @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div class="pagination">
-        <el-pagination
-            v-model:current-page="queryParams.page"
-            v-model:page-size="queryParams.size"
-            :total="total"
-            layout="total, prev, pager, next"
-            @current-change="loadData"
-        />
-      </div>
-    </el-card>
+    <div class="pagination">
+      <el-pagination
+        v-model:current-page="queryParams.page"
+        v-model:page-size="queryParams.size"
+        :total="total"
+        layout="total, prev, pager, next"
+        @current-change="loadData"
+      />
+    </div>
 
     <!-- 编辑/发布弹窗 -->
-    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑公告' : '发布公告'" width="600px">
+    <el-dialog v-model="dialogVisible" :title="form.id ? '编辑公告' : '发布公告'" width="640px" class="glass-dialog">
       <el-form :model="form" label-width="80px">
         <el-form-item label="标题" required>
           <el-input v-model="form.title" placeholder="请输入公告标题" />
         </el-form-item>
         <el-form-item label="内容" required>
-          <el-input
-              v-model="form.content"
-              type="textarea"
-              :rows="6"
-              placeholder="请输入公告正文"
-          />
+          <el-input v-model="form.content" type="textarea" :rows="6" placeholder="请输入公告正文" />
         </el-form-item>
         <el-row>
           <el-col :span="12">
@@ -124,6 +119,9 @@ const form = reactive({
   sort: 0,
   status: 1
 })
+
+const isPinned = (item: any) => item.sort === 0 || item.sort === 1
+const isUrgent = (item: any) => /紧急|维护|故障|升级|停机|中断/.test(item.title || item.content)
 
 const loadData = async () => {
   loading.value = true
@@ -208,15 +206,182 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-container { padding: 20px; }
-.search-card { margin-bottom: 20px; }
-.pagination { margin-top: 20px; display: flex; justify-content: flex-end; }
-.text-truncate {
-  display: inline-block;
-  max-width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align: bottom;
+.page-container {
+  padding: 20px;
+}
+
+.search-card {
+  margin-bottom: 20px;
+}
+
+.notice-board {
+  min-height: 280px;
+  padding: 10px;
+}
+
+.notice-grid {
+  column-count: 3;
+  column-gap: 20px;
+}
+
+.notice-card {
+  break-inside: avoid;
+  padding: 18px 20px;
+  margin: 0 0 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.16);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  position: relative;
+}
+
+.notice-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 28px 60px rgba(15, 23, 42, 0.25);
+}
+
+.notice-card.is-urgent {
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.4), 0 22px 50px rgba(248, 113, 113, 0.35);
+}
+
+.notice-card.is-urgent::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top right, rgba(248, 113, 113, 0.35), transparent 55%);
+  opacity: 0.9;
+  animation: urgent-pulse 2.2s ease-in-out infinite;
+  z-index: 0;
+}
+
+.notice-card.is-pinned .notice-pin {
+  display: inline-flex;
+}
+
+.notice-pin {
+  display: none;
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #fff, #d1d5db 60%, #9ca3af 100%);
+  box-shadow: inset 0 0 4px rgba(15, 23, 42, 0.2), 0 2px 6px rgba(15, 23, 42, 0.35);
+  position: relative;
+}
+
+.notice-pin::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 10px;
+  background: #6b7280;
+  bottom: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+.notice-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.notice-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.notice-title h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.notice-content {
+  margin: 12px 0 16px;
+  color: #334155;
+  line-height: 1.6;
+  font-size: 14px;
+  position: relative;
+  z-index: 1;
+}
+
+.notice-card__meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #64748b;
+  position: relative;
+  z-index: 1;
+}
+
+.notice-card__actions {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.pagination {
+  margin-top: 10px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.notice-fade-enter-active,
+.notice-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.notice-fade-enter-from,
+.notice-fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+:deep(.glass-dialog .el-dialog) {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+}
+
+:deep(.glass-dialog .el-dialog__header) {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+@media (max-width: 1200px) {
+  .notice-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 768px) {
+  .notice-grid {
+    column-count: 1;
+  }
+}
+
+@keyframes urgent-pulse {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.5;
+  }
 }
 </style>
