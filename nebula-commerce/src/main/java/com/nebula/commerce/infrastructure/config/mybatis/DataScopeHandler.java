@@ -24,10 +24,10 @@ public class DataScopeHandler implements TenantLineHandler {
     // 必须进行隔离的表白名单 (表名全部小写)
     // 只有在此列表中的表，并且当前用户是商家时，才会自动拼接 merchant_id = ?
     private static final List<String> TABLE_WHITELIST = Arrays.asList(
-            "pms_product",   // 商品表
-            "oms_order",     // 订单表
-            "sms_coupon",    // 优惠券表
-            "ums_member"     // 会员表 (视业务而定)
+            "sys_product",   // 商品表
+            "sys_order",     // 订单表
+            "mkt_coupon",    // 优惠券表
+            "mkt_seckill"    // 秒杀活动
     );
 
     /**
@@ -36,7 +36,7 @@ public class DataScopeHandler implements TenantLineHandler {
     @Override
     public Expression getTenantId() {
         LoginUser loginUser = getLoginUser();
-        if (loginUser != null && loginUser.getMerchantId() != null) {
+        if (loginUser != null && loginUser.isMerchant() && loginUser.getMerchantId() != null) {
             return new LongValue(loginUser.getMerchantId());
         }
         // 如果无法获取ID (如管理员)，返回 NullValue 配合 ignoreTable 使用
@@ -68,12 +68,17 @@ public class DataScopeHandler implements TenantLineHandler {
             return true;
         }
 
-        // 3. 如果表不在白名单中，说明该表是公共表（如 sys_dict, sys_menu），忽略过滤
+        // 3. 只有商家账号需要隔离，普通用户/后台用户忽略
+        if (!loginUser.isMerchant()) {
+            return true;
+        }
+
+        // 4. 如果表不在白名单中，说明该表是公共表（如 sys_dict, sys_menu），忽略过滤
         if (!TABLE_WHITELIST.contains(tableName.toLowerCase())) {
             return true;
         }
 
-        // 4. 默认情况：需要过滤
+        // 5. 默认情况：需要过滤
         return false;
     }
 

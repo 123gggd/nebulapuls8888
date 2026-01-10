@@ -39,6 +39,14 @@ export function getLogList(params: any) {
     })
 }
 
+// 获取管理员邀请码
+export function getAdminInviteCode() {
+    return request({
+        url: '/admin/system/invite-code',
+        method: 'get'
+    })
+}
+
 // --- 数据看板 ---
 
 // 获取控制台统计数据

@@ -39,6 +39,13 @@ public class LoginUser implements UserDetails {
         return user != null && "ADMIN".equals(user.getRole());
     }
 
+    /**
+     * 判断是否是商家账号
+     */
+    public boolean isMerchant() {
+        return user != null && "MERCHANT".equals(user.getRole());
+    }
+
     @Override
     @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {

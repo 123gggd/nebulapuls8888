@@ -67,7 +67,11 @@ public class OrderAdminController {
             wrapper.eq(Order::getOrderNo, orderNo);
         }
         if (status != null) {
-            wrapper.eq(Order::getStatus, status);
+            if (status == 5) {
+                wrapper.in(Order::getStatus, 5, 6);
+            } else {
+                wrapper.eq(Order::getStatus, status);
+            }
         }
         wrapper.orderByDesc(Order::getCreateTime);
         return Result.success(orderMapper.selectPage(pageParam, wrapper));

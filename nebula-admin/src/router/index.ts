@@ -139,6 +139,12 @@ export const asyncRoutes: RouteRecordRaw[] = [
                 name: 'LogManage',
                 component: () => import('@/views/system/log.vue'),
                 meta: { title: '操作日志' }
+            },
+            {
+                path: 'invite',
+                name: 'AdminInvite',
+                component: () => import('@/views/system/invite.vue'),
+                meta: { title: '管理员邀请码' }
             }
         ]
     },

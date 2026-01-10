@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDateTime;
 
@@ -23,6 +24,9 @@ import java.time.LocalDateTime;
 public class SystemController {
 
     private final SysLogMapper sysLogMapper;
+
+    @Value("${app.admin-invite-code:Nebula2026}")
+    private String adminInviteCode;
 
     @GetMapping("/log/list")
     public Result<Page<SysLog>> listLogs(
@@ -47,5 +51,10 @@ public class SystemController {
 
         wrapper.orderByDesc(SysLog::getCreateTime);
         return Result.success(sysLogMapper.selectPage(pageParam, wrapper));
+    }
+
+    @GetMapping("/invite-code")
+    public Result<String> getInviteCode() {
+        return Result.success(adminInviteCode);
     }
 }

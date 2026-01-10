@@ -41,6 +41,9 @@ public class Coupon {
     @Min(value = 1, message = "每人限领至少1张")
     private Integer perLimit;
 
+    // 优惠券封面图
+    private String image;
+
     @NotNull(message = "开始时间不能为空")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Shanghai")
     private LocalDateTime startTime;

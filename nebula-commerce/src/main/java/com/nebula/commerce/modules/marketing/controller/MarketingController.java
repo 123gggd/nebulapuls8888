@@ -96,4 +96,9 @@ public class MarketingController {
     public Result<List<Seckill>> listCurrentSeckills() {
         return Result.success(marketingService.getCurrentSeckills());
     }
+
+    @GetMapping("/seckill/current")
+    public Result<List<Seckill>> listCurrentSeckillsCompat() {
+        return Result.success(marketingService.getCurrentSeckills());
+    }
 }

@@ -150,7 +150,7 @@ const handleSetDefault = async (id: number) => {
 }
 
 const submitForm = async () => {
-  if (!form.receiverName || !form.receiverPhone || !form.detailAddress) {
+  if (!form.receiverName || !form.receiverPhone || !form.province || !form.city || !form.region || !form.detailAddress) {
     ElMessage.warning('请填写完整信息')
     return
   }

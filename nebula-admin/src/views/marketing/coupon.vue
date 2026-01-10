@@ -10,6 +10,19 @@
 
       <!-- 列表 -->
       <el-table :data="tableData" border stripe v-loading="loading">
+        <el-table-column label="封面" width="100" align="center">
+          <template #default="{ row }">
+            <el-image
+                v-if="row.image"
+                :src="row.image"
+                style="width: 60px; height: 60px"
+                fit="cover"
+                preview-teleported
+                :preview-src-list="[row.image]"
+            />
+            <span v-else style="color: #999;">-</span>
+          </template>
+        </el-table-column>
         <el-table-column prop="name" label="优惠券名称" min-width="150" />
         <el-table-column label="面值" width="120" align="center">
           <template #default="{ row }">
@@ -81,6 +94,17 @@
           </el-input-number>
           <span style="margin-left: 10px; color: #999; font-size: 12px;">0元代表无门槛</span>
         </el-form-item>
+        <el-form-item label="封面图">
+          <el-upload
+              class="avatar-uploader"
+              :show-file-list="false"
+              :http-request="handleUploadImage"
+              :before-upload="beforeUpload"
+          >
+            <img v-if="form.image" :src="form.image" class="avatar" />
+            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+          </el-upload>
+        </el-form-item>
         <el-form-item label="发行量" prop="publishCount">
           <el-input-number v-model="form.publishCount" :min="1" style="width: 180px" />
         </el-form-item>
@@ -110,7 +134,9 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { getCouponList, createCoupon, updateCouponStatus, deleteCoupon } from '@/api/marketing'
+import { uploadFile } from '@/api/product'
 
 const loading = ref(false)
 const tableData = ref([])
@@ -125,6 +151,7 @@ const form = reactive({
   name: '',
   amount: 10,
   minPoint: 100,
+  image: '',
   publishCount: 1000,
   perLimit: 1,
   dateRange: [] as string[]
@@ -152,10 +179,29 @@ const handleAdd = () => {
   form.name = ''
   form.amount = 10
   form.minPoint = 100
+  form.image = ''
   form.publishCount = 100
   form.perLimit = 1
   form.dateRange = []
   dialogVisible.value = true
+}
+
+const handleUploadImage = async (options: any) => {
+  try {
+    const res: any = await uploadFile(options.file)
+    form.image = res.data
+    ElMessage.success('上传成功')
+  } catch (e) {
+    ElMessage.error('上传失败')
+  }
+}
+
+const beforeUpload = (file: File) => {
+  const isJPG = file.type === 'image/jpeg' || file.type === 'image/png'
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isJPG) ElMessage.error('只能上传 JPG/PNG 格式!')
+  if (!isLt2M) ElMessage.error('图片大小不能超过 2MB!')
+  return isJPG && isLt2M
 }
 
 const submitForm = async () => {
@@ -211,5 +257,31 @@ onMounted(loadData)
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.avatar-uploader .avatar {
+  width: 148px;
+  height: 148px;
+  display: block;
+  object-fit: cover;
+}
+.avatar-uploader .el-upload {
+  border: 1px dashed var(--el-border-color);
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: var(--el-transition-duration-fast);
+}
+.avatar-uploader .el-upload:hover {
+  border-color: var(--el-color-primary);
+}
+.avatar-uploader-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 148px;
+  height: 148px;
+  text-align: center;
+  line-height: 148px;
+  border: 1px dashed #d9d9d9;
 }
 </style>

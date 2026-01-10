@@ -338,7 +338,7 @@ const statusStats = computed(() => {
   tableData.value.forEach((order: any) => {
     if (order.status === 0) stats.pending += 1
     if (order.status === 1) stats.toDeliver += 1
-    if (order.status === 5) stats.refunding += 1
+    if (order.status === 5 || order.status === 6) stats.refunding += 1
     if (order.status === 3) stats.completed += 1
   })
   return stats
