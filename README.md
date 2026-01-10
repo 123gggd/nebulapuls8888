@@ -1,8 +1,3 @@
-根据您提供的项目文件结构和配置文件（`pom.xml`, `package.json`），我为您编写了一份完整且详细的 **README.md** 文档。
-
-这份文档涵盖了项目简介、技术栈、功能模块、环境要求、安装运行步骤以及项目结构说明。
-
----
 
 # Nebula Commerce (星云电商系统)
 
@@ -217,17 +212,4 @@ nebulapuls8888/
 
 ---
 
-## 🤝 贡献指南 | Contribution
 
-欢迎提交 Pull Requests 或 Issues 来改进本项目。
-
-1. Fork 本仓库
-2. 新建 Feat_xxx 分支
-3. 提交代码
-4. 新建 Pull Request
-
----
-
-## 📄 版权说明 | License
-
-本项目采用 MIT 许可证，详情请参阅项目中的 LICENSE 文件。
