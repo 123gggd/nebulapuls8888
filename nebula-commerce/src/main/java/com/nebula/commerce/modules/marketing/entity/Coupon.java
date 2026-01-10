@@ -42,6 +42,7 @@ public class Coupon {
     private Integer perLimit;
 
     // 优惠券封面图
+    @TableField(exist = false)
     private String image;
 
     @NotNull(message = "开始时间不能为空")

@@ -59,9 +59,19 @@ public class AddressController {
         // 4. 处理默认地址逻辑
         if (address.getDefaultStatus() != null && address.getDefaultStatus() == 1) {
             clearDefault(userId);
-        } else {
-            // 防止 null 插入数据库
+        } else if (address.getId() == null) {
+            // 新增时防止 defaultStatus 为空
             if (address.getDefaultStatus() == null) address.setDefaultStatus(0);
+        } else {
+            // 编辑时若未传 defaultStatus，则保持原值
+            if (address.getDefaultStatus() == null) {
+                Address exist = addressMapper.selectById(address.getId());
+                if (exist != null) {
+                    address.setDefaultStatus(exist.getDefaultStatus());
+                } else {
+                    address.setDefaultStatus(0);
+                }
+            }
         }
 
         if (address.getId() == null) {

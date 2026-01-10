@@ -326,8 +326,8 @@ const loadData = async () => {
       delete (queryParams as any).endDate
     }
     const res: any = await getOrderList(queryParams)
-    tableData.value = res.data.records
-    total.value = res.data.total
+    tableData.value = res.data?.records || []
+    total.value = res.data?.total || 0
   } finally {
     loading.value = false
   }
@@ -380,8 +380,9 @@ const applyQuickRange = (type: 'today' | 'week') => {
   handleSearch()
 }
 
-const handleTabClick = () => {
-  queryParams.status = activeTab.value === '-1' ? null : Number(activeTab.value)
+const handleTabClick = (tab?: any) => {
+  const tabName = tab?.paneName ?? tab?.props?.name ?? activeTab.value
+  queryParams.status = tabName === '-1' ? null : Number(tabName)
   queryParams.page = 1
   loadData()
 }

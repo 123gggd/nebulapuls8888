@@ -66,7 +66,7 @@ service.interceptors.response.use(
             } else if (response.status === 404) {
                 ElMessage.error('请求的资源不存在')
             } else {
-                ElMessage.error(response.data?.msg || '服务器错误')
+                ElMessage.error(response.data?.msg || response.data?.message || '服务器错误')
             }
         } else {
             ElMessage.error('网络连接异常，请检查网络')

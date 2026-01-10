@@ -360,8 +360,9 @@ const statusStats = computed(() => {
   return counts
 })
 
-const handleTabClick = () => {
-  queryParams.status = activeTab.value === '-1' ? null : Number(activeTab.value)
+const handleTabClick = (tab?: any) => {
+  const tabName = tab?.paneName ?? tab?.props?.name ?? activeTab.value
+  queryParams.status = tabName === '-1' ? null : Number(tabName)
   statusFilter.value = queryParams.status
   queryParams.page = 1
   loadData()
