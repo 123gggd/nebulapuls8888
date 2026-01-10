@@ -10,9 +10,9 @@
       <el-scrollbar>
         <el-menu
             :default-active="activeMenu"
-            background-color="#304156"
-            text-color="#bfcbd9"
-            active-text-color="#409EFF"
+            background-color="transparent"
+            text-color="#e2e8f0"
+            active-text-color="#7dd3fc"
             :collapse="isCollapse"
             unique-opened
             router
@@ -90,7 +90,7 @@
       <!-- 页面内容区域 -->
       <div class="app-main">
         <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
+          <transition name="slide-fade" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
@@ -139,24 +139,29 @@ const handleCommand = (command: string) => {
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  background: linear-gradient(140deg, rgba(255, 255, 255, 0.9), rgba(236, 242, 255, 0.9));
+  background: transparent;
+  padding: 20px;
+  gap: 20px;
+  box-sizing: border-box;
 }
 
 /* 侧边栏样式 */
 .sidebar-container {
-  width: 210px;
-  background: linear-gradient(180deg, #2a3142 0%, #1f2533 100%);
-  height: 100%;
-  transition: width 0.28s;
+  width: 220px;
+  background: rgba(15, 23, 42, 0.78);
+  height: calc(100vh - 40px);
+  transition: width 0.28s, box-shadow 0.28s ease;
   display: flex;
   flex-direction: column;
-  box-shadow: 10px 0 30px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  border-radius: 22px;
+  backdrop-filter: blur(16px);
 }
 
 .logo-container {
   height: 50px;
   line-height: 50px;
-  background: rgba(15, 23, 42, 0.4);
+  background: rgba(15, 23, 42, 0.35);
   text-align: center;
   overflow: hidden;
   display: flex;
@@ -193,7 +198,9 @@ const handleCommand = (command: string) => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: linear-gradient(180deg, #f7f9fc 0%, #eef1f6 100%);
+  background: transparent;
+  gap: 18px;
+  height: calc(100vh - 40px);
 }
 
 /* 顶部导航栏样式 */
@@ -201,14 +208,15 @@ const handleCommand = (command: string) => {
   height: 56px;
   overflow: hidden;
   position: relative;
-  background: rgba(255, 255, 255, 0.78);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
-  backdrop-filter: blur(12px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.6);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
+  border-radius: 18px;
 }
 
 .right-menu {
@@ -228,7 +236,7 @@ const handleCommand = (command: string) => {
 .avatar-wrapper:hover {
   background: rgba(64, 158, 255, 0.08);
   box-shadow: 0 6px 16px rgba(64, 158, 255, 0.15);
-  transform: translateY(-1px);
+  transform: translateY(-4px);
 }
 
 .user-name {
@@ -240,25 +248,48 @@ const handleCommand = (command: string) => {
 /* 内容区域 */
 .app-main {
   flex: 1;
-  padding: 24px;
+  padding: 8px 24px 24px;
   overflow-y: auto;
 }
 
 /* 动画 */
-.fade-transform-leave-active,
-.fade-transform-enter-active {
+.slide-fade-leave-active,
+.slide-fade-enter-active {
   transition: all 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.fade-transform-enter-from {
+.slide-fade-enter-from {
   opacity: 0;
-  transform: translateY(16px) scale(0.98);
+  transform: translateX(28px);
   filter: blur(4px);
 }
 
-.fade-transform-leave-to {
+.slide-fade-leave-to {
   opacity: 0;
-  transform: translateY(-12px) scale(0.98);
+  transform: translateX(-28px);
   filter: blur(4px);
+}
+
+:deep(.el-menu) {
+  background: transparent;
+  border-right: none;
+}
+
+:deep(.el-menu-item),
+:deep(.el-sub-menu__title) {
+  border-radius: 12px;
+  margin: 6px 12px;
+}
+
+:deep(.el-menu-item.is-active) {
+  background: rgba(125, 211, 252, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.35);
+}
+
+:deep(.el-menu-item:hover),
+:deep(.el-sub-menu__title:hover) {
+  background: rgba(59, 130, 246, 0.15);
+  transform: translateY(-3px);
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 </style>
