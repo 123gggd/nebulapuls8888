@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
+import './styles/main.css'
 // 导入所有图标，用于侧边栏菜单渲染
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 

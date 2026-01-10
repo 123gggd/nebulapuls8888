@@ -51,7 +51,7 @@
 
         <el-form-item label="选择商品" prop="productId">
           <div v-if="selectedProduct" class="selected-product">
-            <img :src="selectedProduct.mainImage" class="thumb" />
+            <img :src="selectedProduct.mainImage" class="thumb hover-zoom" />
             <div class="info">
               <div class="name">{{ selectedProduct.name }}</div>
               <div class="price">原价: ¥{{ selectedProduct.price }}</div>

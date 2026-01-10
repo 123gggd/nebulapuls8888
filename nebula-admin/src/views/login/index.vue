@@ -4,7 +4,7 @@
       <template #header>
         <div class="header-content">
           <!-- 替换为你的 Logo 地址 -->
-          <img src="https://element-plus.org/images/element-plus-logo.svg" alt="logo" class="logo">
+          <img src="https://element-plus.org/images/element-plus-logo.svg" alt="logo" class="logo hover-zoom">
           <h2 class="login-title">Nebula Admin</h2>
         </div>
       </template>
