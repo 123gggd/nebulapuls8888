@@ -28,19 +28,6 @@ body {
     100% { background-position: 0% 50%; }
 }
 
-/* 滚动条美化 */
-::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.6);
-    border-radius: 3px;
-}
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
 /* 卡片轻拟态 + 玻璃态 */
 .el-card {
     background: var(--glass-bg);
@@ -88,4 +75,298 @@ img.hover-zoom:hover {
 }
 .el-table .el-table__row:hover {
     background-color: rgba(79, 139, 255, 0.06);
+}
+
+/* 全局反馈组件：ElMessage */
+.el-message {
+    padding: 12px 18px 12px 26px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(148, 163, 184, 0.35);
+    box-shadow: 0 12px 35px rgba(15, 23, 42, 0.35);
+    color: rgba(248, 250, 252, 0.95);
+    gap: 10px;
+}
+.el-message::before {
+    content: "";
+    position: absolute;
+    left: 10px;
+    top: 8px;
+    bottom: 8px;
+    width: 4px;
+    border-radius: 999px;
+    box-shadow: 0 0 14px rgba(255, 255, 255, 0.45);
+}
+.el-message .el-message__content {
+    font-size: 13px;
+    letter-spacing: 0.2px;
+}
+.el-message--success::before {
+    background: #22c55e;
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.85);
+}
+.el-message--warning::before {
+    background: #f97316;
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.85);
+}
+.el-message--error::before {
+    background: #ef4444;
+    box-shadow: 0 0 16px rgba(239, 68, 68, 0.85);
+}
+.el-message--success .el-message__icon {
+    color: #4ade80;
+    filter: drop-shadow(0 0 6px rgba(34, 197, 94, 0.7));
+}
+.el-message--warning .el-message__icon {
+    color: #fb923c;
+    filter: drop-shadow(0 0 8px rgba(249, 115, 22, 0.7));
+    animation: holo-pulse 1.4s ease-in-out infinite;
+}
+.el-message--error .el-message__icon {
+    color: #f87171;
+    filter: drop-shadow(0 0 8px rgba(239, 68, 68, 0.8));
+    animation: holo-shake 0.45s ease-in-out 2;
+}
+.el-message-fade-enter-active {
+    animation: holo-message-drop 0.38s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+.el-message-fade-leave-active {
+    animation: holo-message-exit 0.28s ease-in forwards;
+}
+
+/* 通知弹窗：ElNotification */
+.el-notification {
+    position: relative;
+    background: rgba(10, 15, 30, 0.78);
+    backdrop-filter: blur(12px);
+    border-radius: 18px;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: 0 18px 45px rgba(2, 6, 23, 0.6);
+    overflow: hidden;
+}
+.el-notification::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.8), rgba(168, 85, 247, 0.7), rgba(236, 72, 153, 0.6));
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+}
+.el-notification__title {
+    color: transparent;
+    background: linear-gradient(90deg, #38bdf8, #a855f7, #ec4899);
+    -webkit-background-clip: text;
+    background-clip: text;
+    font-weight: 600;
+}
+.el-notification__content {
+    color: rgba(226, 232, 240, 0.86);
+    font-size: 13px;
+    line-height: 1.5;
+}
+.el-notification__closeBtn {
+    color: rgba(226, 232, 240, 0.8);
+    font-size: 16px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+.el-notification__closeBtn:hover {
+    color: #f8fafc;
+    transform: scale(1.1);
+}
+.el-notification::after {
+    content: "";
+    position: absolute;
+    left: 18px;
+    right: 18px;
+    bottom: 10px;
+    height: 3px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #38bdf8, #a855f7, #ec4899);
+    transform-origin: left;
+    animation: holo-timebar var(--holo-notification-duration, 4500ms) linear forwards;
+    opacity: 0.7;
+}
+
+/* 对话框与确认框：ElDialog / ElMessageBox */
+.el-overlay {
+    backdrop-filter: blur(12px);
+    background-color: rgba(2, 6, 23, 0.55) !important;
+}
+.el-dialog,
+.el-message-box {
+    background: rgba(8, 12, 25, 0.82);
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.65);
+    border-radius: 18px;
+    color: rgba(248, 250, 252, 0.9);
+}
+.el-dialog__header,
+.el-message-box__title {
+    color: #e2e8f0;
+}
+.el-dialog__body,
+.el-message-box__content {
+    color: rgba(226, 232, 240, 0.85);
+}
+.el-message-box--error {
+    box-shadow: 0 20px 60px rgba(239, 68, 68, 0.35);
+}
+.el-message-box--warning {
+    box-shadow: 0 20px 60px rgba(249, 115, 22, 0.35);
+}
+.el-message-box--success {
+    box-shadow: 0 20px 60px rgba(34, 197, 94, 0.35);
+}
+.el-dialog__footer .el-button,
+.el-message-box__btns .el-button {
+    border-radius: 999px;
+}
+.el-dialog__footer .el-button--primary,
+.el-message-box__btns .el-button--primary {
+    background: linear-gradient(90deg, rgba(56, 189, 248, 0.85), rgba(168, 85, 247, 0.9), rgba(236, 72, 153, 0.9));
+    border: none;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.45);
+    animation: holo-pulse 1.8s ease-in-out infinite;
+}
+.el-dialog__footer .el-button:not(.el-button--primary),
+.el-message-box__btns .el-button:not(.el-button--primary) {
+    background: transparent;
+    border: none;
+    color: rgba(226, 232, 240, 0.7);
+}
+
+/* 进度条：NProgress */
+#nprogress .bar {
+    height: 3px;
+    background: linear-gradient(90deg, #22d3ee, #a855f7, #f472b6);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.7);
+}
+#nprogress .peg {
+    box-shadow: 0 0 16px rgba(168, 85, 247, 0.9), 0 0 8px rgba(34, 211, 238, 0.7);
+}
+#nprogress .bar::after {
+    content: "";
+    position: absolute;
+    right: -6px;
+    top: -3px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244, 114, 182, 0.95), rgba(56, 189, 248, 0.1));
+    box-shadow: 0 0 12px rgba(244, 114, 182, 0.85);
+}
+
+/* 骨架屏：ElSkeleton */
+.el-skeleton__item {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.el-skeleton__item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.25) 45%, transparent 70%);
+    transform: translateX(-120%);
+    animation: holo-shimmer 1.6s ease-in-out infinite;
+}
+
+/* 局部加载遮罩：v-loading */
+.el-loading-mask {
+    background-color: transparent;
+    backdrop-filter: blur(8px);
+}
+.el-loading-spinner {
+    color: transparent;
+}
+.el-loading-spinner .circular {
+    display: none;
+}
+.el-loading-spinner::before {
+    content: "";
+    display: inline-block;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 10%, rgba(56, 189, 248, 0.95) 0, transparent 40%),
+      radial-gradient(circle at 90% 50%, rgba(168, 85, 247, 0.9) 0, transparent 42%),
+      radial-gradient(circle at 50% 90%, rgba(236, 72, 153, 0.9) 0, transparent 40%);
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.5);
+    animation: holo-orbit 1.2s linear infinite;
+}
+
+/* 滚动条极致细节 */
+::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+body:hover::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 999px;
+}
+body:hover::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.35);
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* 文字提示：ElTooltip */
+.el-popper.is-dark,
+.el-tooltip__popper.is-dark {
+    background: rgba(6, 10, 28, 0.85);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    backdrop-filter: blur(8px);
+    font-size: 12px;
+    letter-spacing: 0.4px;
+    color: rgba(226, 232, 240, 0.9);
+    transform-origin: center;
+    animation: holo-tooltip-pop 0.2s ease-out;
+}
+
+@keyframes holo-message-drop {
+    0% { transform: translateY(-18px) scale(0.96); opacity: 0; }
+    70% { transform: translateY(4px) scale(1.02); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+@keyframes holo-message-exit {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-6px) scale(0.98); opacity: 0; }
+}
+@keyframes holo-pulse {
+    0%, 100% { transform: scale(1); filter: brightness(1); }
+    50% { transform: scale(1.05); filter: brightness(1.2); }
+}
+@keyframes holo-shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    75% { transform: translateX(2px); }
+}
+@keyframes holo-timebar {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+@keyframes holo-shimmer {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+@keyframes holo-orbit {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes holo-tooltip-pop {
+    0% { transform: scale(0.85); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
