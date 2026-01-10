@@ -71,7 +71,7 @@
               :show-file-list="false"
               :before-upload="beforeUpload"
           >
-            <img v-if="form.mainImage" :src="form.mainImage" class="avatar" />
+            <img v-if="form.mainImage" :src="form.mainImage" class="avatar hover-zoom" />
             <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
           </el-upload>
           <div class="tips">建议尺寸 800x800，大小不超过 2MB</div>

@@ -20,7 +20,7 @@
                 :before-upload="beforeAvatarUpload"
             >
               <div class="avatar-wrapper">
-                <img v-if="user.avatar" :src="user.avatar" class="user-avatar" />
+                <img v-if="user.avatar" :src="user.avatar" class="user-avatar hover-zoom" />
                 <el-avatar v-else :size="100" class="user-avatar-placeholder">
                   {{ user.nickname?.charAt(0)?.toUpperCase() || user.username?.charAt(0)?.toUpperCase() }}
                 </el-avatar>
