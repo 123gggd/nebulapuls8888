@@ -1,49 +1,57 @@
 <template>
   <div class="page-container">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>秒杀活动管理</span>
-          <el-button type="primary" icon="Plus" @click="handleAdd">新建秒杀</el-button>
-        </div>
-      </template>
-
-      <el-table :data="tableData" border stripe v-loading="loading">
-        <el-table-column label="商品图" width="80" align="center">
-          <template #default="{ row }">
-            <el-image :src="row.mainImage" style="width: 50px; height: 50px" fit="cover" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="productName" label="商品名称" min-width="200" show-overflow-tooltip />
-        <el-table-column label="价格信息" width="180" align="center">
-          <template #default="{ row }">
-            <div>秒杀价: <span style="color: red; font-weight: bold;">¥{{ row.seckillPrice }}</span></div>
-            <div style="text-decoration: line-through; color: #999;">原价: ¥{{ row.originalPrice }}</div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="stockCount" label="秒杀库存" width="100" align="center" />
-        <el-table-column label="活动时间" width="320" align="center">
-          <template #default="{ row }">
-            {{ formatTime(row.startTime) }} <br/>至<br/> {{ formatTime(row.endTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="getStatusType(row)">{{ getStatusText(row) }}</el-tag>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div style="margin-top: 20px; text-align: right;">
-        <el-pagination
-            v-model:current-page="queryParams.page"
-            v-model:page-size="queryParams.size"
-            :total="total"
-            layout="total, prev, pager, next"
-            @current-change="loadData"
-        />
+    <div class="ticket-toolbar">
+      <div class="toolbar-title">
+        <div class="title">秒杀活动管理</div>
+        <div class="subtitle">拟物化票据视图</div>
       </div>
-    </el-card>
+      <el-button class="primary-pill" @click="handleAdd">
+        <el-icon><Plus /></el-icon>
+        新建秒杀
+      </el-button>
+    </div>
+
+    <div class="ticket-grid" v-loading="loading">
+      <div v-for="row in tableData" :key="row.id" class="ticket-card" :class="`status-${getStatusText(row)}`">
+        <div class="ticket-content">
+          <div class="ticket-left">
+            <el-image :src="row.mainImage" fit="cover" />
+          </div>
+          <div class="ticket-right">
+            <div class="ticket-name">{{ row.productName }}</div>
+            <div class="price-info">
+              <div class="price-now">¥{{ row.seckillPrice }}</div>
+              <div class="price-old">¥{{ row.originalPrice }}</div>
+            </div>
+            <div class="ticket-rule">
+              <span>库存</span>
+              <span>{{ row.stockCount }}</span>
+            </div>
+            <div class="ticket-rule">
+              <span>活动时间</span>
+              <span>{{ formatTime(row.startTime) }} - {{ formatTime(row.endTime) }}</span>
+            </div>
+            <div class="ticket-status">
+              <span class="status-pill">
+                <span class="dot"></span>
+                {{ getStatusText(row) }}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div class="ticket-stamp" v-if="getStatusText(row) === '已结束'">已结束</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: right;">
+      <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="loadData"
+      />
+    </div>
 
     <!-- 新建秒杀弹窗 -->
     <el-dialog title="发布秒杀活动" v-model="dialogVisible" width="600px">
@@ -122,6 +130,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
+import { Plus } from '@element-plus/icons-vue'
 import { getSeckillList, createSeckill } from '@/api/marketing'
 import { getProductList } from '@/api/product'
 
@@ -264,10 +273,178 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.card-header {
+.ticket-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  margin-bottom: 20px;
+}
+
+.toolbar-title .title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.toolbar-title .subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.primary-pill {
+  border-radius: 999px;
+  padding: 0 18px;
+  height: 36px;
+  color: #fff;
+  border: none;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  box-shadow: 0 10px 24px rgba(56, 189, 248, 0.35);
+}
+
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.ticket-card {
+  position: relative;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.ticket-card::before,
+.ticket-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: #f8fafc;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+.ticket-card::before {
+  left: -9px;
+}
+
+.ticket-card::after {
+  right: -9px;
+}
+
+.ticket-content {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.ticket-left :deep(img) {
+  width: 100%;
+  height: 110px;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.ticket-right {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.price-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.price-now {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ef4444;
+}
+
+.price-old {
+  text-decoration: line-through;
+  color: #94a3b8;
+  font-size: 12px;
+}
+
+.ticket-rule {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ticket-status {
+  margin-top: 6px;
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.status-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 6px rgba(148, 163, 184, 0.8);
+}
+
+.ticket-card.status-进行中 .status-pill .dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+
+.ticket-card.status-未开始 .status-pill .dot {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+.ticket-card.status-已结束 {
+  filter: grayscale(0.7);
+}
+
+.ticket-stamp {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  padding: 4px 10px;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  font-weight: 600;
+  border-radius: 999px;
+  font-size: 12px;
+  transform: rotate(8deg);
 }
 .selected-product {
   display: flex;

@@ -1,105 +1,120 @@
 <template>
-  <div class="page-container" style="padding: 20px;">
-    <el-card>
-      <template #header>
-        <div class="card-header">
-          <span>{{ isEdit ? '编辑商品' : '发布新商品' }}</span>
-          <el-button style="float: right; padding: 3px 0" text @click="goBack">返回列表</el-button>
-        </div>
-      </template>
+  <div class="page-container workspace">
+    <div class="workspace-nav">
+      <div class="nav-title">{{ isEdit ? '编辑商品' : '发布新商品' }}</div>
+      <div class="nav-list">
+        <a href="#section-base">基础信息</a>
+        <a href="#section-stock">规格库存</a>
+        <a href="#section-media">图文详情</a>
+        <a href="#section-seo">SEO 设置</a>
+      </div>
+      <el-button class="back-link" text @click="goBack">返回列表</el-button>
+    </div>
 
+    <div class="workspace-form">
       <el-form :model="form" :rules="rules" label-width="100px" ref="formRef">
+        <section id="section-base" class="form-card">
+          <div class="card-title">基础信息</div>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="商品名称" prop="name">
+                <el-input v-model="form.name" placeholder="请输入商品名称" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="副标题" prop="subtitle">
+                <el-input v-model="form.subtitle" placeholder="请输入副标题" />
+              </el-form-item>
+            </el-col>
+          </el-row>
 
-        <el-divider content-position="left">基础信息</el-divider>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="商品分类" prop="categoryId">
+                <el-tree-select
+                    v-model="form.categoryId"
+                    :data="categoryOptions"
+                    :props="{ label: 'name', value: 'id', children: 'children' }"
+                    check-strictly
+                    placeholder="请选择分类"
+                    style="width: 100%"
+                />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="展示价格" prop="price">
+                <el-input-number v-model="form.price" :precision="2" :step="0.1" :min="0" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </section>
 
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="商品名称" prop="name">
-              <el-input v-model="form.name" placeholder="请输入商品名称" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="副标题" prop="subtitle">
-              <el-input v-model="form.subtitle" placeholder="请输入副标题" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <section id="section-stock" class="form-card">
+          <div class="card-title">规格库存</div>
+          <el-row :gutter="20">
+            <el-col :span="12">
+              <el-form-item label="库存" prop="stock">
+                <el-input-number v-model="form.stock" :min="0" style="width: 100%" />
+              </el-form-item>
+            </el-col>
+            <el-col :span="12">
+              <el-form-item label="状态">
+                <el-radio-group v-model="form.status">
+                  <el-radio :label="1">上架</el-radio>
+                  <el-radio :label="0">下架</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-col>
+          </el-row>
+        </section>
 
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="商品分类" prop="categoryId">
-              <el-tree-select
-                  v-model="form.categoryId"
-                  :data="categoryOptions"
-                  :props="{ label: 'name', value: 'id', children: 'children' }"
-                  check-strictly
-                  placeholder="请选择分类"
-                  style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="展示价格" prop="price">
-              <el-input-number v-model="form.price" :precision="2" :step="0.1" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-        </el-row>
+        <section id="section-media" class="form-card">
+          <div class="card-title">图文详情</div>
+          <el-form-item label="商品主图" prop="mainImage">
+            <el-upload
+                class="avatar-uploader"
+                action="#"
+                :http-request="handleUploadMain"
+                :show-file-list="false"
+                :before-upload="beforeUpload"
+            >
+              <img v-if="form.mainImage" :src="form.mainImage" class="avatar hover-zoom" />
+              <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+            </el-upload>
+            <div class="tips">建议尺寸 800x800，大小不超过 2MB</div>
+          </el-form-item>
 
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="库存" prop="stock">
-              <el-input-number v-model="form.stock" :min="0" style="width: 100%" />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="状态">
-              <el-radio-group v-model="form.status">
-                <el-radio :label="1">上架</el-radio>
-                <el-radio :label="0">下架</el-radio>
-              </el-radio-group>
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <el-form-item label="轮播图">
+            <div class="tips">暂支持单主图模式</div>
+          </el-form-item>
 
-        <el-divider content-position="left">图片信息</el-divider>
+          <el-form-item label="商品详情">
+            <el-input
+                v-model="form.description"
+                type="textarea"
+                :rows="6"
+                placeholder="请输入商品详细描述..."
+            />
+          </el-form-item>
+        </section>
 
-        <el-form-item label="商品主图" prop="mainImage">
-          <el-upload
-              class="avatar-uploader"
-              action="#"
-              :http-request="handleUploadMain"
-              :show-file-list="false"
-              :before-upload="beforeUpload"
-          >
-            <img v-if="form.mainImage" :src="form.mainImage" class="avatar hover-zoom" />
-            <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
-          </el-upload>
-          <div class="tips">建议尺寸 800x800，大小不超过 2MB</div>
-        </el-form-item>
-
-        <el-form-item label="轮播图">
-          <!-- 暂未实现多图上传，可扩展 -->
-          <div class="tips">暂支持单主图模式</div>
-        </el-form-item>
-
-        <el-divider content-position="left">详细描述</el-divider>
-
-        <el-form-item label="商品详情">
-          <el-input
-              v-model="form.description"
-              type="textarea"
-              :rows="5"
-              placeholder="请输入商品详细描述..."
-          />
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" :loading="submitting" @click="submitForm">保存商品</el-button>
-          <el-button @click="goBack">取消</el-button>
-        </el-form-item>
-
+        <section id="section-seo" class="form-card">
+          <div class="card-title">SEO 设置</div>
+          <el-form-item label="关键词">
+            <el-input placeholder="例：轻奢箱包, 真皮" />
+          </el-form-item>
+          <el-form-item label="搜索描述">
+            <el-input type="textarea" :rows="3" placeholder="用于搜索摘要展示" />
+          </el-form-item>
+        </section>
       </el-form>
-    </el-card>
+    </div>
+
+    <div class="sticky-footer">
+      <el-button @click="handleReset">重置</el-button>
+      <el-button @click="handleDraft">存草稿</el-button>
+      <el-button type="primary" :loading="submitting" @click="submitForm">立即发布</el-button>
+    </div>
   </div>
 </template>
 
@@ -133,6 +148,8 @@ const form = reactive({
   subImages: [] as string[]
 })
 
+const initialForm = ref({ ...form })
+
 const rules = {
   name: [{ required: true, message: '请输入商品名称', trigger: 'blur' }],
   categoryId: [{ required: true, message: '请选择分类', trigger: 'change' }],
@@ -154,6 +171,7 @@ onMounted(async () => {
     if (!isNaN(id)) {
       const prodRes: any = await getProductDetail(id)
       Object.assign(form, prodRes.data)
+      initialForm.value = { ...form }
     }
   }
 })
@@ -195,25 +213,125 @@ const submitForm = async () => {
 }
 
 const goBack = () => router.push('/product/list')
+
+const handleReset = () => {
+  Object.assign(form, initialForm.value)
+}
+
+const handleDraft = () => {
+  ElMessage.success('已保存草稿')
+}
 </script>
 
 <style scoped>
+.workspace {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 24px;
+  padding: 20px;
+  position: relative;
+}
+
+.workspace-nav {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.nav-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nav-list a {
+  color: #475569;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.nav-list a:hover {
+  background: rgba(59, 130, 246, 0.12);
+  color: #1d4ed8;
+}
+
+.back-link {
+  align-self: flex-start;
+}
+
+.workspace-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-card {
+  padding: 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-title {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.sticky-footer {
+  position: sticky;
+  bottom: 16px;
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 20px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+}
+
 .avatar-uploader .avatar {
   width: 148px;
   height: 148px;
   display: block;
   object-fit: cover;
+  border-radius: 18px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.18);
 }
 .avatar-uploader .el-upload {
-  border: 1px dashed var(--el-border-color);
-  border-radius: 6px;
+  border: 1px dashed rgba(148, 163, 184, 0.8);
+  border-radius: 16px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
   transition: var(--el-transition-duration-fast);
+  background: rgba(255, 255, 255, 0.6);
 }
 .avatar-uploader .el-upload:hover {
-  border-color: var(--el-color-primary);
+  border-color: #60a5fa;
 }
 .avatar-uploader-icon {
   font-size: 28px;
@@ -222,11 +340,26 @@ const goBack = () => router.push('/product/list')
   height: 148px;
   text-align: center;
   line-height: 148px;
-  border: 1px dashed #d9d9d9;
+  border-radius: 16px;
+  border: 1px dashed rgba(148, 163, 184, 0.7);
 }
 .tips {
   font-size: 12px;
   color: #999;
   margin-top: 5px;
+}
+
+:deep(.el-input__wrapper),
+:deep(.el-textarea__inner),
+:deep(.el-input-number__decrease),
+:deep(.el-input-number__increase) {
+  background: rgba(255, 255, 255, 0.65);
+  border: none;
+  box-shadow: inset 0 -1px 0 rgba(148, 163, 184, 0.4);
+}
+
+:deep(.el-input__wrapper.is-focus),
+:deep(.el-textarea__inner:focus) {
+  box-shadow: inset 0 -2px 0 rgba(59, 130, 246, 0.8);
 }
 </style>

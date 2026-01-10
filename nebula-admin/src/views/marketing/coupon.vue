@@ -1,81 +1,69 @@
 <template>
   <div class="page-container">
-    <el-card shadow="never">
-      <template #header>
-        <div class="card-header">
-          <span>优惠券列表</span>
-          <el-button type="primary" icon="Plus" @click="handleAdd">新建优惠券</el-button>
-        </div>
-      </template>
-
-      <!-- 列表 -->
-      <el-table :data="tableData" border stripe v-loading="loading">
-        <el-table-column label="封面" width="100" align="center">
-          <template #default="{ row }">
-            <el-image
-                v-if="row.image"
-                :src="row.image"
-                style="width: 60px; height: 60px"
-                fit="cover"
-                preview-teleported
-                :preview-src-list="[row.image]"
-            />
-            <span v-else style="color: #999;">-</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="name" label="优惠券名称" min-width="150" />
-        <el-table-column label="面值" width="120" align="center">
-          <template #default="{ row }">
-            <span style="color: #f56c6c; font-weight: bold;">¥{{ row.amount }}</span>
-          </template>
-        </el-table-column>
-        <el-table-column label="使用门槛" width="150" align="center">
-          <template #default="{ row }">
-            满 {{ row.minPoint }} 可用
-          </template>
-        </el-table-column>
-        <el-table-column label="发放情况" width="150" align="center">
-          <template #default="{ row }">
-            <el-progress
-                :percentage="Math.min(100, Math.round((row.receiveCount || 0) / row.publishCount * 100))"
-                :format="() => `${row.receiveCount}/${row.publishCount}`"
-            />
-          </template>
-        </el-table-column>
-        <el-table-column label="有效期" width="320" align="center">
-          <template #default="{ row }">
-            {{ formatTime(row.startTime) }} 至 {{ formatTime(row.endTime) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="状态" width="100" align="center">
-          <template #default="{ row }">
-            <el-tag :type="row.status === 1 ? 'success' : 'info'">{{ row.status === 1 ? '上架' : '下架' }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="操作" width="180" align="center" fixed="right">
-          <template #default="{ row }">
-            <el-button
-                :type="row.status === 1 ? 'warning' : 'success'"
-                link
-                @click="handleStatus(row)"
-            >
-              {{ row.status === 1 ? '下架' : '发布' }}
-            </el-button>
-            <el-button type="danger" link @click="handleDelete(row)">删除</el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-
-      <div style="margin-top: 20px; text-align: right;">
-        <el-pagination
-            v-model:current-page="queryParams.page"
-            v-model:page-size="queryParams.size"
-            :total="total"
-            layout="total, prev, pager, next"
-            @current-change="loadData"
-        />
+    <div class="ticket-toolbar">
+      <div class="toolbar-title">
+        <div class="title">优惠券列表</div>
+        <div class="subtitle">拟物化票据视图</div>
       </div>
-    </el-card>
+      <el-button class="primary-pill" @click="handleAdd">
+        <el-icon><Plus /></el-icon>
+        新建优惠券
+      </el-button>
+    </div>
+
+    <!-- 列表 -->
+    <div class="ticket-grid" v-loading="loading">
+      <div v-for="row in tableData" :key="row.id" class="ticket-card" :class="{ 'is-inactive': row.status !== 1 }">
+        <div class="ticket-content">
+          <div class="ticket-left">
+            <div class="amount">¥{{ row.amount }}</div>
+            <div class="threshold">满 {{ row.minPoint }} 可用</div>
+            <div class="ticket-image" v-if="row.image">
+              <el-image :src="row.image" fit="cover" :preview-src-list="[row.image]" preview-teleported />
+            </div>
+          </div>
+          <div class="ticket-right">
+            <div class="ticket-name">{{ row.name }}</div>
+            <div class="ticket-rule">
+              <span>有效期</span>
+              <span>{{ formatTime(row.startTime) }} - {{ formatTime(row.endTime) }}</span>
+            </div>
+            <div class="ticket-rule">
+              <span>发放情况</span>
+              <el-progress
+                  :percentage="Math.min(100, Math.round((row.receiveCount || 0) / row.publishCount * 100))"
+                  :format="() => `${row.receiveCount}/${row.publishCount}`"
+              />
+            </div>
+            <div class="ticket-actions">
+              <el-button
+                  class="icon-action"
+                  text
+                  circle
+                  :icon="row.status === 1 ? Download : Upload"
+                  @click="handleStatus(row)"
+              />
+              <el-popconfirm title="确认删除该优惠券吗?" @confirm="handleDelete(row)">
+                <template #reference>
+                  <el-button class="icon-action danger" text circle :icon="Delete" />
+                </template>
+              </el-popconfirm>
+            </div>
+          </div>
+        </div>
+        <div class="ticket-stamp" v-if="row.status !== 1">已下架</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: right;">
+      <el-pagination
+          v-model:current-page="queryParams.page"
+          v-model:page-size="queryParams.size"
+          :total="total"
+          layout="total, prev, pager, next"
+          @current-change="loadData"
+      />
+    </div>
 
     <!-- 新建弹窗 -->
     <el-dialog title="新建优惠券" v-model="dialogVisible" width="600px">
@@ -133,8 +121,8 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { Plus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
+import { Delete, Download, Plus, Upload } from '@element-plus/icons-vue'
 import { getCouponList, createCoupon, updateCouponStatus, deleteCoupon } from '@/api/marketing'
 import { uploadFile } from '@/api/product'
 
@@ -239,12 +227,10 @@ const handleStatus = async (row: any) => {
   loadData()
 }
 
-const handleDelete = (row: any) => {
-  ElMessageBox.confirm('确认删除该优惠券吗?', '警告', { type: 'warning' }).then(async () => {
-    await deleteCoupon(row.id)
-    ElMessage.success('删除成功')
-    loadData()
-  })
+const handleDelete = async (row: any) => {
+  await deleteCoupon(row.id)
+  ElMessage.success('删除成功')
+  loadData()
 }
 
 const formatTime = (time: string) => time ? time.replace('T', ' ') : ''
@@ -253,10 +239,166 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.card-header {
+.ticket-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  margin-bottom: 20px;
+}
+
+.toolbar-title .title {
+  font-weight: 600;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.toolbar-title .subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+.primary-pill {
+  border-radius: 999px;
+  padding: 0 18px;
+  height: 36px;
+  color: #fff;
+  border: none;
+  background: linear-gradient(135deg, #38bdf8, #6366f1);
+  box-shadow: 0 10px 24px rgba(56, 189, 248, 0.35);
+}
+
+.ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.ticket-card {
+  position: relative;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 18px 32px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+.ticket-card::before,
+.ticket-card::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  background: #f8fafc;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.2);
+}
+
+.ticket-card::before {
+  left: -9px;
+}
+
+.ticket-card::after {
+  right: -9px;
+}
+
+.ticket-card.is-inactive {
+  filter: grayscale(0.6);
+}
+
+.ticket-content {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.ticket-left {
+  text-align: center;
+}
+
+.amount {
+  font-size: 28px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+.threshold {
+  font-size: 12px;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+.ticket-image :deep(img) {
+  margin-top: 10px;
+  width: 90px;
+  height: 90px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.ticket-right {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ticket-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ticket-rule {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.ticket-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.icon-action {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.icon-action:hover {
+  opacity: 1;
+  color: #409eff;
+}
+
+.icon-action.danger:hover {
+  color: #f56c6c;
+  background: rgba(245, 108, 108, 0.12);
+}
+
+.ticket-stamp {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  padding: 4px 10px;
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  color: #ef4444;
+  font-weight: 600;
+  border-radius: 999px;
+  font-size: 12px;
+  transform: rotate(8deg);
 }
 .avatar-uploader .avatar {
   width: 148px;
