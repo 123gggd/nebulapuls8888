@@ -10,7 +10,7 @@
             </div>
           </template>
 
-          <div class="text-center profile-header">
+          <div class="text-center profile-header" :style="{ '--hero-image': user.avatar ? `url(${user.avatar})` : 'none' }">
             <!-- 头像上传组件 -->
             <el-upload
                 class="avatar-uploader"
@@ -33,6 +33,17 @@
 
             <h3 class="user-name">{{ user.nickname || user.username }}</h3>
             <p class="user-role">{{ getRoleName(user.role) }}</p>
+            <div class="hero-stats">
+              <div class="stat">
+                <div class="stat-value">{{ registerDays }}</div>
+                <div class="stat-label">注册天数</div>
+              </div>
+              <div class="divider"></div>
+              <div class="stat">
+                <div class="stat-value">{{ user.merchantId ? '商户' : '个人' }}</div>
+                <div class="stat-label">账号类型</div>
+              </div>
+            </div>
           </div>
 
           <el-divider />
@@ -108,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 // [关键修复] 修正 Store 路径
 import { useUserStore } from '@/stores/modules/user'
 import { ElMessage } from 'element-plus'
@@ -171,6 +182,14 @@ const getRoleName = (role: string) => {
   if (role === 'MERCHANT') return '入驻商家'
   return '普通用户'
 }
+
+const registerDays = computed(() => {
+  if (!user.value?.createTime) return '--'
+  const created = new Date(user.value.createTime).getTime()
+  if (Number.isNaN(created)) return '--'
+  const diff = Date.now() - created
+  return Math.max(1, Math.floor(diff / (1000 * 60 * 60 * 24)))
+})
 
 const beforeAvatarUpload = (file: File) => {
   const isImg = ['image/jpeg', 'image/png'].includes(file.type)
@@ -239,6 +258,25 @@ onMounted(() => {
 .profile-header {
   padding: 20px 0;
   text-align: center;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.75);
+}
+.profile-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: var(--hero-image);
+  background-size: cover;
+  background-position: center;
+  filter: blur(18px);
+  opacity: 0.25;
+  transform: scale(1.1);
+}
+.profile-header > * {
+  position: relative;
+  z-index: 1;
 }
 .avatar-wrapper {
   position: relative;
@@ -283,6 +321,33 @@ onMounted(() => {
 }
 .user-name { margin: 15px 0 5px; font-size: 22px; font-weight: 600; color: #303133; }
 .user-role { font-size: 14px; color: #909399; }
+.hero-stats {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.hero-stats .stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.hero-stats .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.hero-stats .stat-label {
+  font-size: 12px;
+  color: #94a3b8;
+}
+.hero-stats .divider {
+  width: 1px;
+  height: 30px;
+  background: rgba(148, 163, 184, 0.4);
+}
 .user-info { padding: 10px 0; }
 .info-item {
   display: flex; align-items: center; margin-bottom: 15px;

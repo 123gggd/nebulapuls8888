@@ -1,8 +1,8 @@
 <template>
   <div class="page-container">
     <!-- 搜索栏 -->
-    <el-card shadow="never" class="search-card">
-      <el-form inline :model="queryParams">
+    <div class="filter-bar">
+      <el-form inline :model="queryParams" class="filter-form">
         <el-form-item label="订单号">
           <el-input
               v-model="queryParams.orderNo"
@@ -11,17 +11,6 @@
               @keyup.enter="handleSearch"
               style="width: 220px"
           />
-        </el-form-item>
-        <el-form-item label="状态">
-          <el-select v-model="queryParams.status" placeholder="全部" clearable style="width: 140px">
-            <el-option label="待支付" :value="0" />
-            <el-option label="待发货" :value="1" />
-            <el-option label="已发货" :value="2" />
-            <el-option label="已完成" :value="3" />
-            <el-option label="已取消" :value="4" />
-            <el-option label="售后中" :value="5" />
-            <el-option label="已退款" :value="6" />
-          </el-select>
         </el-form-item>
         <el-form-item label="时间范围">
           <el-date-picker
@@ -33,14 +22,35 @@
               value-format="YYYY-MM-DD"
           />
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" icon="Search" @click="handleSearch">查询</el-button>
-          <el-button icon="Refresh" @click="resetQuery">重置</el-button>
-          <el-button type="info" plain @click="applyQuickRange('today')">今日</el-button>
-          <el-button type="info" plain @click="applyQuickRange('week')">本周</el-button>
-        </el-form-item>
       </el-form>
-    </el-card>
+      <div class="filter-actions">
+        <el-button class="icon-action" circle :icon="Search" @click="handleSearch" />
+        <el-button class="icon-action" circle :icon="Refresh" @click="resetQuery" />
+        <el-button class="ghost-pill" @click="applyQuickRange('today')">今日</el-button>
+        <el-button class="ghost-pill" @click="applyQuickRange('week')">本周</el-button>
+        <el-popover placement="bottom-end" width="240" trigger="click">
+          <template #reference>
+            <el-button class="icon-action" circle :icon="Filter" />
+          </template>
+          <div class="advanced-panel">
+            <div class="advanced-title">高级筛选</div>
+            <el-form label-position="top">
+              <el-form-item label="订单状态">
+                <el-select v-model="queryParams.status" placeholder="全部" clearable>
+                  <el-option label="待支付" :value="0" />
+                  <el-option label="待发货" :value="1" />
+                  <el-option label="已发货" :value="2" />
+                  <el-option label="已完成" :value="3" />
+                  <el-option label="已取消" :value="4" />
+                  <el-option label="售后中" :value="5" />
+                  <el-option label="已退款" :value="6" />
+                </el-select>
+              </el-form-item>
+            </el-form>
+          </div>
+        </el-popover>
+      </div>
+    </div>
 
     <!-- 列表内容 -->
     <el-card shadow="never" class="table-card" style="margin-top: 20px;">
@@ -93,7 +103,7 @@
         </div>
       </div>
 
-      <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%" @selection-change="handleSelectionChange">
+      <el-table :data="tableData" v-loading="loading" style="width: 100%" :row-class-name="getRowClassName" @selection-change="handleSelectionChange">
         <el-table-column type="selection" width="55" align="center" />
         <el-table-column prop="orderNo" label="订单号" width="180" show-overflow-tooltip />
 
@@ -110,9 +120,12 @@
           </template>
         </el-table-column>
 
-        <el-table-column label="状态" width="100" align="center">
+        <el-table-column label="状态" width="120" align="center">
           <template #default="{ row }">
-            <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
+            <span class="status-pill" :class="`status-${row.status}`">
+              <span class="dot"></span>
+              {{ getStatusText(row.status) }}
+            </span>
           </template>
         </el-table-column>
 
@@ -120,21 +133,23 @@
 
         <el-table-column label="操作" width="200" fixed="right" align="center">
           <template #default="{ row }">
-            <el-button type="primary" link @click="handleDetail(row)">详情</el-button>
-
+            <el-button class="icon-action" text circle :icon="View" @click="handleDetail(row)" />
             <el-button
                 v-if="row.status === 1"
-                type="success"
-                link
+                class="icon-action"
+                text
+                circle
+                :icon="Upload"
                 @click="openDeliverDialog(row)"
-            >发货</el-button>
-
+            />
             <el-button
                 v-if="row.status === 5"
-                type="warning"
-                link
+                class="icon-action warning"
+                text
+                circle
+                :icon="Select"
                 @click="openAuditDialog(row)"
-            >审核</el-button>
+            />
           </template>
         </el-table-column>
       </el-table>
@@ -298,6 +313,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { Filter, Refresh, Search, Select, Upload, View } from '@element-plus/icons-vue'
 import { getOrderList, getOrderDetail, deliverOrder, auditRefund } from '@/api/order'
 
 // --- 列表逻辑 ---
@@ -493,6 +509,8 @@ const handleSelectionChange = (rows: any[]) => {
   selectedRows.value = rows
 }
 
+const getRowClassName = () => 'floating-row'
+
 // --- 状态工具 ---
 const getStatusText = (status: number) => {
   const map: Record<number, string> = {
@@ -513,6 +531,67 @@ onMounted(loadData)
 </script>
 
 <style scoped>
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+}
+
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 16px;
+  align-items: center;
+  flex: 1;
+}
+
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ghost-pill {
+  border-radius: 999px;
+  padding: 0 14px;
+  height: 34px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.icon-action {
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+
+.icon-action:hover {
+  opacity: 1;
+  color: #409eff;
+}
+
+.icon-action.warning:hover {
+  color: #f59e0b;
+}
+
+.advanced-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.advanced-title {
+  font-weight: 600;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
 .detail-container {
   padding: 10px;
 }
@@ -597,5 +676,82 @@ onMounted(loadData)
     display: flex;
     gap: 10px;
   }
+}
+
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.status-pill .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #94a3b8;
+  box-shadow: 0 0 6px rgba(148, 163, 184, 0.8);
+}
+
+.status-pill.status-1 .dot {
+  background: #22c55e;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+}
+
+.status-pill.status-3 .dot {
+  background: #38bdf8;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+}
+
+.status-pill.status-5 .dot,
+.status-pill.status-6 .dot {
+  background: #f97316;
+  box-shadow: 0 0 8px rgba(249, 115, 22, 0.8);
+}
+
+.status-pill.status-4 .dot {
+  background: #94a3b8;
+}
+
+:deep(.el-table) {
+  --el-table-border-color: transparent;
+  background: transparent;
+}
+
+:deep(.el-table__header th) {
+  background: transparent;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+:deep(.el-table__body) {
+  border-collapse: separate;
+  border-spacing: 0 12px;
+}
+
+:deep(.floating-row td) {
+  background: rgba(255, 255, 255, 0.75);
+  border-top: 1px solid rgba(255, 255, 255, 0.8);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+:deep(.floating-row:hover td) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
+}
+
+:deep(.floating-row td:first-child) {
+  border-radius: 12px 0 0 12px;
+}
+
+:deep(.floating-row td:last-child) {
+  border-radius: 0 12px 12px 0;
 }
 </style>
