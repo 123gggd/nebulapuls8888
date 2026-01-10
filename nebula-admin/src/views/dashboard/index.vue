@@ -220,26 +220,39 @@ const initSalesChart = (dates: string[], values: number[]) => {
   salesChart = echarts.init(salesChartRef.value)
 
   const option = {
-    color: ['#4f8bff'],
+    color: ['#8db6ff'],
     animationDuration: 1200,
     animationEasing: 'cubicOut',
     animationDurationUpdate: 800,
     tooltip: { trigger: 'axis' },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: { type: 'category', boundaryGap: false, data: dates, axisLine: { lineStyle: { color: '#e2e8f0' } } },
-    yAxis: { type: 'value', axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { lineStyle: { color: '#eef2f7' } } },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: dates,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#cbd5f5' }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#cbd5f5' },
+      splitLine: { show: false }
+    },
     series: [
       {
         name: '销售额',
         type: 'line',
         smooth: true,
         symbolSize: 8,
-        lineStyle: { width: 3, color: '#4f8bff' },
-        itemStyle: { color: '#4f8bff' },
+        lineStyle: { width: 3, color: '#8db6ff' },
+        itemStyle: { color: '#8db6ff' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(79, 139, 255, 0.45)' },
-            { offset: 1, color: 'rgba(79, 139, 255, 0.04)' }
+            { offset: 0, color: 'rgba(141, 182, 255, 0.4)' },
+            { offset: 1, color: 'rgba(141, 182, 255, 0.02)' }
           ])
         },
         data: values
@@ -253,7 +266,7 @@ const initCategoryChart = (data: { name: string; value: number }[]) => {
   if (!categoryChartRef.value) return
   categoryChart = echarts.init(categoryChartRef.value)
   const option = {
-    color: ['#4f8bff', '#38bdf8', '#a855f7', '#22c55e', '#f97316', '#facc15'],
+    color: ['#8db6ff', '#a7d8f5', '#cbb6f6', '#a7e3c4', '#f2c6a0', '#f4e3a3'],
     animationDuration: 1200,
     animationEasing: 'cubicOut',
     animationDurationUpdate: 800,
@@ -278,26 +291,39 @@ const initUserChart = (dates: string[], values: number[]) => {
   if (!userChartRef.value) return
   userChart = echarts.init(userChartRef.value)
   const option = {
-    color: ['#22c55e'],
+    color: ['#95d5b2'],
     animationDuration: 1200,
     animationEasing: 'cubicOut',
     animationDurationUpdate: 800,
     tooltip: { trigger: 'axis' },
     grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
-    xAxis: { type: 'category', boundaryGap: false, data: dates, axisLine: { lineStyle: { color: '#e2e8f0' } } },
-    yAxis: { type: 'value', axisLine: { lineStyle: { color: '#e2e8f0' } }, splitLine: { lineStyle: { color: '#eef2f7' } } },
+    xAxis: {
+      type: 'category',
+      boundaryGap: false,
+      data: dates,
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#cbd5f5' }
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { color: '#cbd5f5' },
+      splitLine: { show: false }
+    },
     series: [
       {
         name: '新增用户',
         type: 'line',
         smooth: true,
         symbolSize: 8,
-        lineStyle: { width: 3, color: '#22c55e' },
-        itemStyle: { color: '#22c55e' },
+        lineStyle: { width: 3, color: '#95d5b2' },
+        itemStyle: { color: '#95d5b2' },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(34, 197, 94, 0.45)' },
-            { offset: 1, color: 'rgba(34, 197, 94, 0.05)' }
+            { offset: 0, color: 'rgba(149, 213, 178, 0.45)' },
+            { offset: 1, color: 'rgba(149, 213, 178, 0.04)' }
           ])
         },
         data: values

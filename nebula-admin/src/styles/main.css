@@ -1,9 +1,9 @@
 :root {
     color-scheme: light;
-    --soft-shadow: 16px 16px 32px rgba(15, 23, 42, 0.12), -12px -12px 24px rgba(255, 255, 255, 0.7);
-    --soft-shadow-hover: 18px 18px 40px rgba(15, 23, 42, 0.16), -10px -10px 24px rgba(255, 255, 255, 0.8);
-    --glass-bg: rgba(255, 255, 255, 0.72);
-    --glass-border: rgba(148, 163, 184, 0.2);
+    --soft-shadow: 0 18px 40px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.5);
+    --soft-shadow-hover: 0 28px 60px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.6);
+    --glass-bg: rgba(255, 255, 255, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.55);
     --accent: #4f8bff;
 }
 
@@ -11,11 +11,21 @@ body {
     margin: 0;
     padding: 0;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: radial-gradient(circle at top left, rgba(79, 139, 255, 0.12), transparent 45%),
-      radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18), transparent 50%),
-      linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+    background:
+      radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.28), transparent 45%),
+      radial-gradient(circle at 80% 10%, rgba(56, 189, 248, 0.32), transparent 45%),
+      radial-gradient(circle at 20% 80%, rgba(34, 197, 94, 0.18), transparent 45%),
+      linear-gradient(120deg, #0f172a 0%, #111827 35%, #1d4ed8 65%, #38bdf8 100%);
+    background-size: 180% 180%;
+    animation: nebula-flow 18s ease infinite;
     -webkit-font-smoothing: antialiased;
     color: #0f172a;
+}
+
+@keyframes nebula-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* 滚动条美化 */
@@ -40,7 +50,7 @@ body {
     transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .el-card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-6px);
     box-shadow: var(--soft-shadow-hover);
     border-color: rgba(79, 139, 255, 0.28);
 }
