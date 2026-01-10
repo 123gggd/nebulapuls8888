@@ -1,13 +1,16 @@
 <template>
-  <div class="app-container" style="padding: 20px;">
-    <el-card shadow="never">
+  <div class="app-container review-page">
+    <el-card shadow="never" class="review-card-shell">
       <template #header>
-        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
-          <span>评价管理</span>
+        <div class="card-header">
+          <div>
+            <div class="title">评价管理</div>
+            <div class="subtitle">情感可视化 · Glass Bubbles</div>
+          </div>
         </div>
       </template>
 
-      <el-form inline :model="queryParams" class="search-form" style="margin-bottom: 20px;">
+      <el-form inline :model="queryParams" class="search-form">
         <el-form-item label="商品名称">
           <el-input v-model="queryParams.productName" placeholder="请输入商品名称" clearable @keyup.enter="handleSearch" />
         </el-form-item>
@@ -24,58 +27,73 @@
         </el-form-item>
       </el-form>
 
-      <el-table :data="tableData" border stripe v-loading="loading" style="width: 100%">
-        <el-table-column prop="id" label="ID" width="80" align="center" />
-        <el-table-column label="商品信息" min-width="220">
-          <template #default="{ row }">
-            <div class="product-info">
-              <el-image v-if="row.productImage" :src="row.productImage" class="product-image" fit="cover" />
-              <div>
-                <div class="product-name">{{ row.productName || '-' }}</div>
-                <div class="product-specs">{{ row.specs || '默认规格' }}</div>
+      <div class="review-stream" v-loading="loading">
+        <el-empty v-if="!tableData.length" description="暂无评价" />
+        <div v-else class="review-list">
+          <div v-for="row in tableData" :key="row.id" class="review-item">
+            <div class="review-top">
+              <div class="product-info">
+                <el-image v-if="row.productImage" :src="row.productImage" class="product-image" fit="cover" />
+                <div class="product-text">
+                  <div class="product-name">{{ row.productName || '-' }}</div>
+                  <div class="product-specs">{{ row.specs || '默认规格' }}</div>
+                </div>
+              </div>
+              <div class="review-meta">
+                <el-tag v-if="row.status === 1" type="success" effect="light">显示</el-tag>
+                <el-tag v-else-if="row.status === 2" type="warning" effect="light">精选</el-tag>
+                <el-tag v-else type="info" effect="light">隐藏</el-tag>
+                <span class="review-time">{{ row.createTime || '-' }}</span>
               </div>
             </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="userName" label="用户" width="140" />
-        <el-table-column prop="rating" label="评分" width="120" align="center">
-          <template #default="{ row }">
-            <el-rate v-model="row.rating" disabled show-score text-color="#ff9900" />
-          </template>
-        </el-table-column>
-        <el-table-column prop="content" label="评价内容" min-width="220" />
-        <el-table-column prop="replyContent" label="商家回复" min-width="200">
-          <template #default="{ row }">
-            <span v-if="row.replyContent">{{ row.replyContent }}</span>
-            <span v-else class="muted">未回复</span>
-          </template>
-        </el-table-column>
-        <el-table-column prop="status" label="状态" width="120" align="center">
-          <template #default="{ row }">
-            <el-tag v-if="row.status === 1" type="success">显示</el-tag>
-            <el-tag v-else-if="row.status === 2" type="warning">精选</el-tag>
-            <el-tag v-else type="info">隐藏</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createTime" label="创建时间" width="180" />
-        <el-table-column label="操作" width="200" align="center" fixed="right">
-          <template #default="{ row }">
-            <el-button link type="primary" @click="openReply(row)">回复</el-button>
-            <el-dropdown @command="(command: number) => handleStatus(row, command)">
-              <el-button link type="warning">审核</el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item :command="1">显示</el-dropdown-item>
-                  <el-dropdown-item :command="0">隐藏</el-dropdown-item>
-                  <el-dropdown-item :command="2">精选</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
 
-      <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+            <div class="review-body">
+              <div class="user-avatar">
+                <el-avatar :src="row.avatar" :size="48">{{ getInitial(row.userName) }}</el-avatar>
+              </div>
+              <div class="review-bubble">
+                <div class="bubble-header">
+                  <span class="user-name">{{ row.userName || '匿名用户' }}</span>
+                  <el-rate v-model="row.rating" disabled show-score text-color="#ffb400" class="glow-rate" />
+                </div>
+                <div class="bubble-content">
+                  <span
+                    v-for="(segment, index) in highlightContent(row.content || '-')"
+                    :key="index"
+                    :class="{ highlight: segment.highlight }"
+                  >
+                    {{ segment.text }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="reply-area">
+              <div class="reply-bubble" :class="{ empty: !row.replyContent }">
+                <span class="reply-label">商家回复</span>
+                <div class="reply-content">
+                  {{ row.replyContent || '暂未回复，点击“回复”开始对话' }}
+                </div>
+              </div>
+              <div class="review-actions">
+                <el-button type="primary" link @click="openReply(row)">回复</el-button>
+                <el-dropdown @command="(command: number) => handleStatus(row, command)">
+                  <el-button link type="warning">审核</el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item :command="1">显示</el-dropdown-item>
+                      <el-dropdown-item :command="0">隐藏</el-dropdown-item>
+                      <el-dropdown-item :command="2">精选</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pagination-wrap">
         <el-pagination
           background
           layout="total, prev, pager, next"
@@ -88,20 +106,29 @@
     </el-card>
 
     <el-dialog v-model="replyVisible" title="回复评价" width="520px" destroy-on-close>
-      <el-form :model="replyForm" label-width="90px">
-        <el-form-item label="商品">
-          <span>{{ currentRow?.productName || '-' }}</span>
-        </el-form-item>
-        <el-form-item label="评价内容">
-          <div class="reply-content">{{ currentRow?.content || '-' }}</div>
-        </el-form-item>
-        <el-form-item label="回复内容" required>
-          <el-input v-model="replyForm.content" type="textarea" :rows="4" placeholder="请输入回复内容" />
+      <div class="chat-thread">
+        <div class="chat-bubble user">
+          <div class="chat-label">用户评价</div>
+          <div class="chat-text">{{ currentRow?.content || '-' }}</div>
+        </div>
+        <div class="chat-bubble merchant" v-if="currentRow?.replyContent">
+          <div class="chat-label">商家回复</div>
+          <div class="chat-text">{{ currentRow?.replyContent }}</div>
+        </div>
+      </div>
+      <el-form :model="replyForm" label-width="0" class="chat-input">
+        <el-form-item required>
+          <el-input
+            v-model="replyForm.content"
+            type="textarea"
+            :rows="3"
+            placeholder="输入回复内容..."
+          />
         </el-form-item>
       </el-form>
       <template #footer>
         <el-button @click="replyVisible = false">取消</el-button>
-        <el-button type="primary" :loading="replyLoading" @click="submitReply">提交</el-button>
+        <el-button type="primary" :loading="replyLoading" @click="submitReply">发送回复</el-button>
       </template>
     </el-dialog>
   </div>
@@ -111,6 +138,11 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getReviewList, replyReview, updateReviewStatus } from '@/api/review'
+
+type HighlightSegment = {
+  text: string
+  highlight: boolean
+}
 
 const loading = ref(false)
 const tableData = ref<any[]>([])
@@ -130,6 +162,24 @@ const replyForm = reactive({
   id: 0,
   content: ''
 })
+
+const highlightKeywords = ['满意', '喜欢', '推荐', '不错', '糟糕', '失望', '差', '一般']
+
+const highlightContent = (content: string): HighlightSegment[] => {
+  if (!content) {
+    return [{ text: '-', highlight: false }]
+  }
+  const pattern = new RegExp(`(${highlightKeywords.join('|')})`, 'g')
+  return content.split(pattern).filter(Boolean).map((text) => ({
+    text,
+    highlight: highlightKeywords.includes(text)
+  }))
+}
+
+const getInitial = (name?: string) => {
+  if (!name) return 'U'
+  return name.trim().slice(0, 1).toUpperCase()
+}
 
 const loadData = async () => {
   loading.value = true
@@ -197,30 +247,180 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.review-page {
+  padding: 20px;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.title {
+  font-size: 18px;
+  font-weight: 600;
+}
+.subtitle {
+  font-size: 12px;
+  color: #94a3b8;
+  margin-top: 4px;
+}
+.search-form {
+  margin-bottom: 20px;
+}
+.review-stream {
+  min-height: 320px;
+}
+.review-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.review-item {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  backdrop-filter: blur(12px);
+}
+.review-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
 .product-info {
   display: flex;
   gap: 12px;
   align-items: center;
 }
 .product-image {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+}
+.product-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 .product-name {
   font-weight: 600;
 }
 .product-specs {
   font-size: 12px;
-  color: #999;
+  color: #94a3b8;
 }
-.reply-content {
-  background: #f5f7fa;
-  padding: 8px 10px;
-  border-radius: 6px;
-  color: #606266;
+.review-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #64748b;
+  font-size: 12px;
 }
-.muted {
-  color: #aaa;
+.review-body {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.user-avatar {
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.review-bubble {
+  flex: 1;
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+  box-shadow: inset 0 0 20px rgba(148, 163, 184, 0.2);
+}
+.bubble-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+.user-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+.glow-rate :deep(.el-rate__icon) {
+  text-shadow: 0 0 8px rgba(255, 180, 0, 0.8);
+}
+.bubble-content {
+  font-size: 14px;
+  line-height: 1.7;
+  color: #1e293b;
+}
+.bubble-content .highlight {
+  color: #f97316;
+  font-weight: 600;
+  text-shadow: 0 0 8px rgba(249, 115, 22, 0.35);
+}
+.reply-area {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+.reply-bubble {
+  flex: 1;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.04);
+  border: 1px dashed rgba(100, 116, 139, 0.35);
+}
+.reply-bubble.empty {
+  color: #64748b;
+}
+.reply-label {
+  font-size: 12px;
+  color: #94a3b8;
+  display: block;
+  margin-bottom: 4px;
+}
+.review-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pagination-wrap {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+.chat-thread {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.chat-bubble {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(148, 163, 184, 0.15);
+}
+.chat-bubble.user {
+  border-left: 4px solid #38bdf8;
+}
+.chat-bubble.merchant {
+  border-left: 4px solid #10b981;
+}
+.chat-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
+}
+.chat-text {
+  color: #1f2937;
+}
+.chat-input :deep(.el-textarea__inner) {
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.8);
 }
 </style>
