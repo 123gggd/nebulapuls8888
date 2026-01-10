@@ -5,14 +5,14 @@
       <div class="logo-container">
         <!-- 请替换为您的 Logo -->
         <div class="logo-badge">N</div>
-        <h1 class="logo-text" v-if="!isCollapse">Nebula Admin</h1>
+        <h1 class="logo-text" :class="{ 'is-collapsed': isCollapse }">Nebula Admin</h1>
       </div>
       <el-scrollbar>
         <el-menu
             :default-active="activeMenu"
             background-color="transparent"
             text-color="#e2e8f0"
-            active-text-color="#7dd3fc"
+            active-text-color="#ffffff"
             :collapse="isCollapse"
             unique-opened
             router
@@ -20,9 +20,20 @@
         >
           <!-- 动态渲染侧边栏 -->
           <template v-for="route in routes" :key="route.path">
+            <!-- 0. 单子节点扁平化 -->
+            <el-menu-item
+                v-if="shouldFlatten(route)"
+                :index="resolvePath(route.path, getFlattenChild(route).path)"
+            >
+              <el-icon v-if="getFlattenChild(route).meta?.icon">
+                <component :is="getFlattenChild(route).meta?.icon" />
+              </el-icon>
+              <span>{{ getFlattenChild(route).meta?.title }}</span>
+            </el-menu-item>
+
             <!-- 1. 没有子路由或 hidden -->
             <el-menu-item
-                v-if="!route.children && !route.meta?.hidden"
+                v-else-if="!route.children && !route.meta?.hidden"
                 :index="route.path"
             >
               <el-icon v-if="route.meta?.icon"><component :is="route.meta.icon" /></el-icon>
@@ -31,7 +42,7 @@
 
             <!-- 2. 有子路由 -->
             <el-sub-menu
-                v-if="route.children && route.children.length > 0 && !route.meta?.hidden"
+                v-else-if="route.children && getVisibleChildren(route).length > 0 && !route.meta?.hidden"
                 :index="route.path"
             >
               <template #title>
@@ -40,9 +51,8 @@
               </template>
 
               <!-- 子菜单项 (支持一级嵌套) -->
-              <template v-for="child in route.children" :key="child.path">
+              <template v-for="child in getVisibleChildren(route)" :key="child.path">
                 <el-menu-item
-                    v-if="!child.meta?.hidden"
                     :index="resolvePath(route.path, child.path)"
                 >
                   <el-icon v-if="child.meta?.icon"><component :is="child.meta.icon" /></el-icon>
@@ -101,6 +111,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { RouteRecordRaw } from 'vue-router'
 import { useRoute, useRouter } from 'vue-router'
 import { usePermissionStore } from '@/stores/modules/permission'
 import { useUserStore } from '@/stores/modules/user'
@@ -120,6 +131,17 @@ const activeMenu = computed(() => route.meta?.activeMenu || route.path)
 const resolvePath = (basePath: string, routePath: string) => {
   if (routePath.startsWith('/')) return routePath
   return basePath === '/' ? '/' + routePath : basePath + '/' + routePath
+}
+
+const getVisibleChildren = (route: RouteRecordRaw) =>
+  route.children?.filter(child => !child.meta?.hidden) ?? []
+
+const getFlattenChild = (route: RouteRecordRaw) => getVisibleChildren(route)[0]
+
+const shouldFlatten = (route: RouteRecordRaw) => {
+  if (route.meta?.hidden) return false
+  const visibleChildren = getVisibleChildren(route)
+  return visibleChildren.length === 1 && !route.meta?.alwaysShow
 }
 
 // [核心] 处理下拉菜单点击
@@ -148,26 +170,29 @@ const handleCommand = (command: string) => {
 /* 侧边栏样式 */
 .sidebar-container {
   width: 220px;
-  background: rgba(15, 23, 42, 0.78);
+  background: rgba(15, 23, 42, 0.72);
   height: calc(100vh - 40px);
-  transition: width 0.28s, box-shadow 0.28s ease;
+  transition: width 0.45s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  backdrop-filter: blur(18px);
+}
+
+.sidebar-container :deep(.el-scrollbar) {
+  flex: 1;
 }
 
 .logo-container {
-  height: 50px;
-  line-height: 50px;
-  background: rgba(15, 23, 42, 0.35);
+  height: 56px;
   text-align: center;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .logo-badge {
@@ -190,6 +215,11 @@ const handleCommand = (command: string) => {
   margin: 0;
   font-family: Avenir, Helvetica Neue, Arial, Helvetica, sans-serif;
   letter-spacing: 0.4px;
+  transition: opacity 0.3s ease;
+}
+
+.logo-text.is-collapsed {
+  opacity: 0;
 }
 
 /* 主体容器 */
@@ -279,17 +309,27 @@ const handleCommand = (command: string) => {
 :deep(.el-sub-menu__title) {
   border-radius: 12px;
   margin: 6px 12px;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
 :deep(.el-menu-item.is-active) {
-  background: rgba(125, 211, 252, 0.18);
-  box-shadow: inset 0 0 0 1px rgba(125, 211, 252, 0.35);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9), rgba(125, 211, 252, 0.9));
+  box-shadow: 0 10px 22px rgba(56, 189, 248, 0.35), inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+  color: #fff;
+  font-weight: 600;
+}
+
+:deep(.el-menu-item.is-active .el-icon) {
+  color: #fff;
+}
+
+:deep(.el-sub-menu.is-active > .el-sub-menu__title) {
+  color: #fff;
 }
 
 :deep(.el-menu-item:hover),
 :deep(.el-sub-menu__title:hover) {
-  background: rgba(59, 130, 246, 0.15);
-  transform: translateY(-3px);
-  transition: transform 0.2s ease, background 0.2s ease;
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateX(4px);
 }
 </style>
