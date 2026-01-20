@@ -124,8 +124,4 @@ nebulapuls8888/
 * [ ] Database seed scripts
 * [ ] CI/CD integration
 
----
 
-## 📄 License
-
-MIT License
