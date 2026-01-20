@@ -2,28 +2,28 @@
   <div class="profile-page">
     <el-card shadow="never" style="border-radius: 12px;">
       <template #header>
-        <div style="font-weight: bold; font-size: 18px;">个人中心</div>
+        <div style="font-weight: bold; font-size: 18px;">Profile</div>
       </template>
 
       <el-tabs tab-position="left" style="height: 400px;">
-        <el-tab-pane label="基本资料">
+        <el-tab-pane label="Basic Info">
           <div class="form-wrapper">
             <el-form :model="userInfo" label-width="80px">
-              <el-form-item label="账号">
+              <el-form-item label="Account">
                 <el-input v-model="userInfo.username" disabled />
               </el-form-item>
-              <el-form-item label="昵称">
-                <el-input v-model="userInfo.nickname" placeholder="设置您的昵称" />
+              <el-form-item label="Display name">
+                <el-input v-model="userInfo.nickname" placeholder="Set your display name" />
               </el-form-item>
-              <el-form-item label="手机号">
-                <el-input v-model="userInfo.phone" placeholder="绑定手机号" />
+              <el-form-item label="Phone">
+                <el-input v-model="userInfo.phone" placeholder="Link your phone number" />
               </el-form-item>
-              <el-form-item label="邮箱">
-                <el-input v-model="userInfo.email" placeholder="绑定邮箱" />
+              <el-form-item label="Email">
+                <el-input v-model="userInfo.email" placeholder="Link your email address" />
               </el-form-item>
 
-              <!-- 头像上传 -->
-              <el-form-item label="头像">
+              <!-- Avatar upload -->
+              <el-form-item label="Avatar">
                 <el-upload
                     class="avatar-uploader"
                     action="#"
@@ -35,35 +35,35 @@
                   <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
                 </el-upload>
                 <div style="font-size: 12px; color: #999; line-height: 1.5; margin-top: 5px;">
-                  点击图片更换头像 (JPG/PNG, &lt;2MB)
+                  Click the image to change your avatar (JPG/PNG, &lt;2MB)
                 </div>
               </el-form-item>
 
-              <el-form-item label="注册时间">
+              <el-form-item label="Registered">
                 <span>{{ userInfo.createTime }}</span>
               </el-form-item>
               <el-form-item>
-                <!-- [修复] 方法名与 Script 保持一致 -->
-                <el-button type="primary" @click="handleUpdateProfile" :loading="loading">保存修改</el-button>
+                <!-- [Fix] Method name matches the script -->
+                <el-button type="primary" @click="handleUpdateProfile" :loading="loading">Save changes</el-button>
               </el-form-item>
             </el-form>
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="安全设置">
+        <el-tab-pane label="Security">
           <div class="form-wrapper">
             <el-form :model="pwdForm" :rules="pwdRules" ref="pwdFormRef" label-width="100px">
-              <el-form-item label="原密码" prop="oldPassword">
+              <el-form-item label="Current password" prop="oldPassword">
                 <el-input v-model="pwdForm.oldPassword" type="password" show-password />
               </el-form-item>
-              <el-form-item label="新密码" prop="newPassword">
+              <el-form-item label="New password" prop="newPassword">
                 <el-input v-model="pwdForm.newPassword" type="password" show-password />
               </el-form-item>
-              <el-form-item label="确认新密码" prop="confirmPassword">
+              <el-form-item label="Confirm new password" prop="confirmPassword">
                 <el-input v-model="pwdForm.confirmPassword" type="password" show-password />
               </el-form-item>
               <el-form-item>
-                <el-button type="danger" @click="handleUpdatePwd" :loading="loading">修改密码</el-button>
+                <el-button type="danger" @click="handleUpdatePwd" :loading="loading">Update password</el-button>
               </el-form-item>
             </el-form>
           </div>
@@ -108,17 +108,17 @@ const pwdForm = reactive({
 })
 
 const pwdRules = {
-  oldPassword: [{ required: true, message: '请输入原密码', trigger: 'blur' }],
+  oldPassword: [{ required: true, message: 'Please enter your current password', trigger: 'blur' }],
   newPassword: [
-    { required: true, message: '请输入新密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于6位', trigger: 'blur' }
+    { required: true, message: 'Please enter a new password', trigger: 'blur' },
+    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
   ],
   confirmPassword: [
-    { required: true, message: '请确认新密码', trigger: 'blur' },
+    { required: true, message: 'Please confirm your new password', trigger: 'blur' },
     {
       validator: (rule: any, value: string, callback: any) => {
         if (value !== pwdForm.newPassword) {
-          callback(new Error('两次输入密码不一致'))
+          callback(new Error('Passwords do not match'))
         } else {
           callback()
         }
@@ -137,16 +137,16 @@ const loadInfo = async () => {
   }
 }
 
-// 图片格式校验
+// Avatar format validation
 const beforeAvatarUpload = (file: any) => {
   const isJPG = file.type === 'image/jpeg' || file.type === 'image/png'
   const isLt2M = file.size / 1024 / 1024 < 2
 
   if (!isJPG) {
-    ElMessage.error('头像只能是 JPG/PNG 格式!')
+    ElMessage.error('Avatar must be JPG or PNG!')
   }
   if (!isLt2M) {
-    ElMessage.error('头像大小不能超过 2MB!')
+    ElMessage.error('Avatar size must be under 2MB!')
   }
   return isJPG && isLt2M
 }
@@ -170,30 +170,30 @@ const handleAvatarUpload = async (options: any) => {
 
     const result = res.data
     if (result.code === 200) {
-      userInfo.value.avatar = result.data // 假设后端返回图片URL
-      ElMessage.success('头像上传成功')
-      // 立即更新用户信息中的头像字段，避免刷新丢失
+      userInfo.value.avatar = result.data // Assume backend returns the image URL
+      ElMessage.success('Avatar uploaded successfully')
+      // Update the user info immediately to avoid refresh loss
       await updateUserInfo({ avatar: result.data })
-      userStore.username = userInfo.value.nickname // 触发 store 更新
+      userStore.username = userInfo.value.nickname // Trigger store update
     } else {
-      ElMessage.error(result.msg || '上传失败')
+      ElMessage.error(result.msg || 'Upload failed')
     }
   } catch (error: any) {
     console.error(error)
-    ElMessage.error('上传出错，请检查网络')
+    ElMessage.error('Upload failed. Please check your network.')
   }
 }
 
-// [修复] 重命名为 handleUpdateProfile 以匹配模板
+// [Fix] Rename to handleUpdateProfile to match the template
 const handleUpdateProfile = async () => {
   loading.value = true
   try {
     await updateUserInfo(userInfo.value)
-    ElMessage.success('资料更新成功')
-    // 更新 Store 状态
-    // 如果 userStore 中有同步用户信息的 action 可以在这里调用
+    ElMessage.success('Profile updated successfully')
+    // Update store state
+    // If userStore has an action to sync info, call it here
   } catch (e) {
-    // request.ts 已处理错误
+    // request.ts handles errors
   } finally {
     loading.value = false
   }
@@ -210,7 +210,7 @@ const handleUpdatePwd = async () => {
           oldPassword: pwdForm.oldPassword,
           newPassword: pwdForm.newPassword
         })
-        ElMessage.success('密码修改成功，请重新登录')
+        ElMessage.success('Password updated. Please sign in again.')
         userStore.logout()
       } catch(e) {
         // err

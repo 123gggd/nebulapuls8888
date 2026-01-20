@@ -24,10 +24,10 @@ export default defineConfig({
         },
     },
     server: {
-        port: 5174, // 【关键】商城运行在 5174 端口
+        port: 5174, // [Critical] Storefront runs on port 5174
         proxy: {
             '/api': {
-                target: 'http://127.0.0.1:8080', // 连接后端
+                target: 'http://127.0.0.1:8080', // Backend target
                 changeOrigin: true,
             },
             '/images': {

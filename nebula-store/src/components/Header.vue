@@ -5,23 +5,23 @@ import { computed } from 'vue'
 
 const router = useRouter()
 
-// 动态获取用户信息
+// Dynamically fetch user info
 const user = computed(() => {
   const u = localStorage.getItem('user')
   return u ? JSON.parse(u) : null
 })
 
-// [关键修复] 退出登录逻辑
+// [Critical fix] Logout flow
 const handleLogout = () => {
-  // 1. 清除数据
+  // 1. Clear data
   localStorage.removeItem('token')
   localStorage.removeItem('user')
   sessionStorage.clear()
 
-  ElMessage.success('已退出登录')
+  ElMessage.success('Signed out successfully')
 
-  // 2. [关键] 强制刷新并跳转到登录页
-  // 使用 window.location.href 替代 router.push，确保状态彻底重置
+  // 2. [Critical] Force refresh and redirect to the login page
+  // Use window.location.href instead of router.push to fully reset state
   setTimeout(() => {
     window.location.href = '/login'
   }, 500)
@@ -36,20 +36,20 @@ const handleLogout = () => {
       </div>
 
       <div class="nav-actions">
-        <!-- 已登录 -->
+        <!-- Signed in -->
         <div v-if="user" class="user-panel">
           <span class="welcome">Hi, {{ user.nickname || user.username }}</span>
           <el-divider direction="vertical" />
-          <el-button link @click="router.push('/order')">我的订单</el-button>
-          <el-button link @click="router.push('/user/address')">地址管理</el-button>
-          <el-button link type="danger" @click="handleLogout">退出</el-button>
+          <el-button link @click="router.push('/order')">My Orders</el-button>
+          <el-button link @click="router.push('/user/address')">Address Book</el-button>
+          <el-button link type="danger" @click="handleLogout">Sign Out</el-button>
         </div>
 
-        <!-- 未登录 -->
+        <!-- Signed out -->
         <div v-else class="auth-panel">
-          <el-button type="primary" link @click="router.push('/login')">登录</el-button>
+          <el-button type="primary" link @click="router.push('/login')">Sign In</el-button>
           <el-divider direction="vertical" />
-          <el-button type="primary" link @click="router.push('/register')">注册</el-button>
+          <el-button type="primary" link @click="router.push('/register')">Register</el-button>
         </div>
       </div>
     </div>

@@ -3,16 +3,16 @@ import { ref, computed } from 'vue'
 import { loginApi, getUserInfo } from '@/api/store'
 import router from '@/router'
 
-// 定义登录接口返回的数据类型
+// Define response type for the login API
 interface LoginResult {
     token: string
     user: any
 }
 
 export const useUserStore = defineStore('user', () => {
-    // 状态 State
+    // State
     const token = ref(localStorage.getItem('token') || '')
-    // 尝试解析本地存储的用户对象，防止 JSON.parse 报错
+    // Parse stored user safely to avoid JSON.parse errors
     const userInfo = ref<any>({})
     try {
         const storedUser = localStorage.getItem('user')
@@ -23,28 +23,28 @@ export const useUserStore = defineStore('user', () => {
         userInfo.value = {}
     }
 
-    // 计算属性 Getters
+    // Getters
     const isLoggedIn = computed(() => !!token.value)
-    const username = computed(() => userInfo.value.username || userInfo.value.nickname || '用户')
+    const username = computed(() => userInfo.value.username || userInfo.value.nickname || 'User')
     const avatar = computed(() => userInfo.value.avatar)
 
-    // 动作 Actions
+    // Actions
 
-    // 1. 登录动作
+    // 1. Login
     async function login(loginForm: any) {
         try {
-            // 显式断言返回类型为 LoginResult (或 any，取决于 request.ts 的泛型定义)
-            // 假设 request.ts 拦截器已经解包了 res.data，这里直接拿到 { token, user }
+            // Explicitly cast the response to LoginResult (or any, depending on request.ts generics)
+            // Assume request.ts interceptor unwraps res.data so we get { token, user }
             const res = await loginApi({ ...loginForm, loginType: 'store' }) as unknown as LoginResult
 
             const accessToken = res.token
             const userObj = res.user
 
-            // 更新状态
+            // Update state
             token.value = accessToken
             userInfo.value = userObj
 
-            // 持久化
+            // Persist
             localStorage.setItem('token', accessToken)
             localStorage.setItem('user', JSON.stringify(userObj))
 
@@ -54,7 +54,7 @@ export const useUserStore = defineStore('user', () => {
         }
     }
 
-    // 2. 获取最新用户信息
+    // 2. Fetch latest user info
     async function fetchUserInfo() {
         if (!token.value) return
         try {
@@ -62,18 +62,18 @@ export const useUserStore = defineStore('user', () => {
             userInfo.value = res
             localStorage.setItem('user', JSON.stringify(res))
         } catch (error) {
-            console.error('更新用户信息失败', error)
+            console.error('Failed to update user info', error)
         }
     }
 
-    // 3. 登出
+    // 3. Logout
     function logout() {
         token.value = ''
         userInfo.value = {}
         localStorage.removeItem('token')
         localStorage.removeItem('user')
 
-        // 跳转登录页，并携带当前页面路径，以便登录后跳回
+        // Redirect to login with the current path for return
         if (router.currentRoute.value.path !== '/login') {
             router.push(`/login?redirect=${router.currentRoute.value.fullPath}`)
         }

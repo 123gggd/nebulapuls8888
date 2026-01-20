@@ -8,13 +8,13 @@ const routes: RouteRecordRaw[] = [
         path: '/login',
         name: 'Login',
         component: () => import('@/views/Login.vue'),
-        meta: { title: '用户登录' }
+        meta: { title: 'Sign In' }
     },
     {
         path: '/register',
         name: 'Register',
         component: () => import('@/views/Register.vue'),
-        meta: { title: '用户注册' }
+        meta: { title: 'Register' }
     },
     {
         path: '/',
@@ -25,74 +25,74 @@ const routes: RouteRecordRaw[] = [
                 path: 'home',
                 name: 'Home',
                 component: () => import('@/views/Home.vue'),
-                meta: { title: '首页' }
+                meta: { title: 'Home' }
             },
             {
                 path: 'search',
                 name: 'Search',
                 component: () => import('@/views/Search.vue'),
-                meta: { title: '商品搜索' }
+                meta: { title: 'Product Search' }
             },
             {
                 path: 'product/:id',
                 name: 'ProductDetail',
                 component: () => import('@/views/ProductDetail.vue'),
-                meta: { title: '商品详情' }
+                meta: { title: 'Product Details' }
             },
             {
                 path: 'notice',
                 name: 'NoticeList',
                 component: () => import('@/views/NoticeList.vue'),
-                meta: { title: '公告列表' }
+                meta: { title: 'Announcements' }
             },
             {
                 path: 'notice/:id',
                 name: 'NoticeDetail',
                 component: () => import('@/views/NoticeDetail.vue'),
-                meta: { title: '公告详情' }
+                meta: { title: 'Announcement Details' }
             },
-            // --- 需要登录的页面 ---
+            // --- Pages that require sign-in ---
             {
                 path: 'cart',
                 name: 'Cart',
                 component: () => import('@/views/Cart.vue'),
-                meta: { title: '购物车', requiresAuth: true }
+                meta: { title: 'Cart', requiresAuth: true }
             },
             {
                 path: 'order',
                 name: 'OrderList',
                 component: () => import('@/views/Order.vue'),
-                meta: { title: '我的订单', requiresAuth: true }
+                meta: { title: 'My Orders', requiresAuth: true }
             },
             {
                 path: 'address',
                 name: 'Address',
                 component: () => import('@/views/Address.vue'),
-                meta: { title: '地址管理', requiresAuth: true }
+                meta: { title: 'Address Book', requiresAuth: true }
             },
             {
                 path: 'profile',
                 name: 'Profile',
                 component: () => import('@/views/Profile.vue'),
-                meta: { title: '个人中心', requiresAuth: true }
+                meta: { title: 'Profile', requiresAuth: true }
             },
             {
                 path: 'pay',
                 name: 'Pay',
                 component: () => import('@/views/Pay.vue'),
-                meta: { title: '订单支付', requiresAuth: true }
+                meta: { title: 'Checkout', requiresAuth: true }
             },
             {
                 path: 'coupon',
                 name: 'CouponCenter',
                 component: () => import('@/views/CouponCenter.vue'),
-                meta: { title: '领券中心', requiresAuth: true }
+                meta: { title: 'Coupon Center', requiresAuth: true }
             },
             {
                 path: 'my-coupon',
                 name: 'MyCoupon',
                 component: () => import('@/views/MyCoupon.vue'),
-                meta: { title: '我的优惠券', requiresAuth: true }
+                meta: { title: 'My Coupons', requiresAuth: true }
             },{
                 path: '/:pathMatch(.*)*',
                 name: 'NotFound',
@@ -101,7 +101,7 @@ const routes: RouteRecordRaw[] = [
             }
         ]
     },
-    // 404 页面
+    // 404 page
     {
         path: '/:pathMatch(.*)*',
         redirect: '/'
@@ -111,7 +111,7 @@ const routes: RouteRecordRaw[] = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
-    // 将 to, from 改为 _to, _from 以忽略未使用警告
+    // Rename to/from to _to/_from to avoid unused warnings
     scrollBehavior(_to, _from, savedPosition) {
         if (savedPosition) {
             return savedPosition
@@ -121,17 +121,17 @@ const router = createRouter({
     }
 })
 
-// 全局路由守卫
-// 将 from 改为 _from 以忽略未使用警告
+// Global route guard
+// Rename from to _from to avoid unused warnings
 router.beforeEach((to, _from, next) => {
     const userStore = useUserStore()
 
-    // 设置页面标题
+    // Set page title
     document.title = (to.meta.title as string) ? `${to.meta.title} - Nebula Store` : 'Nebula Store'
 
-    // 鉴权逻辑
+    // Auth logic
     if (to.meta.requiresAuth && !userStore.isLoggedIn) {
-        ElMessage.warning('请先登录')
+        ElMessage.warning('Please sign in first')
         next({
             path: '/login',
             query: { redirect: to.fullPath }

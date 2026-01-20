@@ -4,26 +4,26 @@
       <el-card shadow="never" class="order-card">
         <template #header>
           <div class="card-header">
-            <span>我的订单</span>
-            <span class="header-tip">实时同步订单状态</span>
+            <span>My Orders</span>
+            <span class="header-tip">Order status synced in real time</span>
           </div>
         </template>
 
         <div class="summary-grid">
           <div class="summary-item">
-            <div class="label">待支付</div>
+            <div class="label">Pending payment</div>
             <div class="value">{{ statusStats.pending }}</div>
           </div>
           <div class="summary-item">
-            <div class="label">待发货</div>
+            <div class="label">Awaiting shipment</div>
             <div class="value">{{ statusStats.toDeliver }}</div>
           </div>
           <div class="summary-item">
-            <div class="label">已发货</div>
+            <div class="label">Shipped</div>
             <div class="value">{{ statusStats.shipped }}</div>
           </div>
           <div class="summary-item">
-            <div class="label">已完成</div>
+            <div class="label">Completed</div>
             <div class="value">{{ statusStats.completed }}</div>
           </div>
         </div>
@@ -32,80 +32,80 @@
           <el-date-picker
             v-model="dateRange"
             type="daterange"
-            range-separator="至"
-            start-placeholder="开始日期"
-            end-placeholder="结束日期"
+            range-separator="to"
+            start-placeholder="Start date"
+            end-placeholder="End date"
             value-format="YYYY-MM-DD"
           />
-          <el-select v-model="statusFilter" placeholder="订单状态" clearable style="width: 160px">
-            <el-option label="待支付" :value="0" />
-            <el-option label="待发货" :value="1" />
-            <el-option label="已发货" :value="2" />
-            <el-option label="已完成" :value="3" />
-            <el-option label="售后中" :value="5" />
-            <el-option label="已退款" :value="6" />
+          <el-select v-model="statusFilter" placeholder="Order status" clearable style="width: 160px">
+            <el-option label="Pending payment" :value="0" />
+            <el-option label="Awaiting shipment" :value="1" />
+            <el-option label="Shipped" :value="2" />
+            <el-option label="Completed" :value="3" />
+            <el-option label="After-sales" :value="5" />
+            <el-option label="Refunded" :value="6" />
           </el-select>
-          <el-button type="primary" @click="applyFilters">筛选</el-button>
-          <el-button @click="resetFilters">重置</el-button>
+          <el-button type="primary" @click="applyFilters">Filter</el-button>
+          <el-button @click="resetFilters">Reset</el-button>
         </div>
 
         <el-tabs v-model="activeTab" class="status-tabs" @tab-click="handleTabClick">
-          <el-tab-pane label="全部订单" name="-1" />
-          <el-tab-pane label="待支付" name="0" />
-          <el-tab-pane label="待发货" name="1" />
-          <el-tab-pane label="已发货" name="2" />
-          <el-tab-pane label="已完成" name="3" />
-          <el-tab-pane label="售后/退款" name="5" />
+          <el-tab-pane label="All orders" name="-1" />
+          <el-tab-pane label="Pending payment" name="0" />
+          <el-tab-pane label="Awaiting shipment" name="1" />
+          <el-tab-pane label="Shipped" name="2" />
+          <el-tab-pane label="Completed" name="3" />
+          <el-tab-pane label="After-sales/Refund" name="5" />
         </el-tabs>
 
         <el-table :data="tableData" border stripe size="large" v-loading="loading">
-          <el-table-column prop="orderNo" label="订单号" width="220" />
+          <el-table-column prop="orderNo" label="Order No." width="220" />
 
-          <el-table-column label="商品信息" min-width="250">
+          <el-table-column label="Product Info" min-width="250">
             <template #default="{ row }: { row: Order }">
               <div v-if="row.items && row.items.length > 0" class="order-goods-preview">
                 <el-image :src="row.items[0].mainImage" class="thumb" fit="cover" />
                 <div class="info">
                   <div class="name">{{ row.items[0].productName }}</div>
-                  <div class="more" v-if="row.items.length > 1">等 {{ row.items.length }} 件商品</div>
+                  <div class="more" v-if="row.items.length > 1">{{ row.items.length }} items total</div>
                 </div>
               </div>
             </template>
           </el-table-column>
 
-          <el-table-column label="实付金额" width="150" align="center">
+          <el-table-column label="Amount Paid" width="150" align="center">
             <template #default="{ row }: { row: Order }">
               <span class="amount">¥{{ row.finalTotalAmount || row.totalAmount }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column prop="createTime" label="下单时间" width="180" align="center" />
+          <el-table-column prop="createTime" label="Order time" width="180" align="center" />
 
-          <el-table-column label="状态" width="100" align="center">
+          <el-table-column label="Status" width="100" align="center">
             <template #default="{ row }: { row: Order }">
               <el-tag :type="getStatusType(row.status)">{{ getStatusText(row.status) }}</el-tag>
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" width="200" align="center" fixed="right">
+          <el-table-column label="Actions" width="200" align="center" fixed="right">
             <template #default="{ row }: { row: Order }">
               <template v-if="row.status === 0">
-                <el-button type="primary" size="small" @click="handlePay(row)">去支付</el-button>
-                <el-button type="info" size="small" link @click="handleCancel(row)">取消</el-button>
+                <el-button type="primary" size="small" @click="handlePay(row)">Pay now</el-button>
+                <el-button type="info" size="small" link @click="handleCancel(row)">Cancel</el-button>
               </template>
 
-              <el-button v-if="row.status === 1" type="danger" size="small" link @click="openRefund(row)">申请退款</el-button>
+              <el-button v-if="row.status === 1" type="danger" size="small" link @click="openRefund(row)">Request refund</el-button>
 
-              <el-button v-if="row.status === 2" type="success" size="small" @click="handleReceive(row)">确认收货</el-button>
+              <el-button v-if="row.status === 2" type="success" size="small" @click="handleReceive(row)">Confirm receipt</el-button>
 
-              <el-button v-if="row.status === 3" type="warning" size="small" link @click="openReviewDialog(row)">评价</el-button>
+              <el-button v-if="row.status === 3" type="warning" size="small" link @click="openReviewDialog(row)">Review</el-button>
 
-              <el-button size="small" link @click="handleViewDetail(row)">详情</el-button>
+              <el-button size="small" link @click="handleViewDetail(row)">Details</el-button>
             </template>
           </el-table-column>
         </el-table>
 
-        <EmptyState v-if="!loading && tableData.length === 0" description="还没有订单，去首页逛逛吧" action-text="去首页" action-to="/">
+        <EmptyState v-if="!loading && tableData.length === 0" description="No orders yet. Visit the homepage to start shopping." action-text="Go to home" action-to="/">
           <template #image>
             <svg viewBox="0 0 220 160" aria-hidden="true" class="empty-illustration">
               <defs>
@@ -120,7 +120,7 @@
             </svg>
           </template>
           <div class="recommendations" v-if="recommendedProducts.length">
-            <div class="recommend-title">为你推荐</div>
+            <div class="recommend-title">Recommended for you</div>
             <div class="recommend-grid">
               <div
                 v-for="item in recommendedProducts"
@@ -148,28 +148,28 @@
         </div>
       </el-card>
 
-      <el-dialog v-model="detailVisible" title="订单详情" width="600px" destroy-on-close>
+      <el-dialog v-model="detailVisible" title="Order Details" width="600px" destroy-on-close>
         <div v-if="currentOrderVo" class="detail-box">
-          <div class="section-title">订单进度</div>
+          <div class="section-title">Order progress</div>
           <el-steps :active="orderStepActive" align-center>
-            <el-step title="下单" :description="currentOrderVo?.order?.createTime || '待更新'" />
-            <el-step title="支付" :description="currentOrderVo?.order?.payTime || '待支付'" />
-            <el-step title="发货" :description="currentOrderVo?.order?.deliverTime || '待发货'" />
-            <el-step title="收货" :description="currentOrderVo?.order?.receiveTime || '待收货'" />
+            <el-step title="Placed" :description="currentOrderVo?.order?.createTime || 'Pending'" />
+            <el-step title="Paid" :description="currentOrderVo?.order?.payTime || 'Pending payment'" />
+            <el-step title="Shipped" :description="currentOrderVo?.order?.deliverTime || 'Awaiting shipment'" />
+            <el-step title="Received" :description="currentOrderVo?.order?.receiveTime || 'Awaiting receipt'" />
           </el-steps>
 
-          <div class="section-title">收货信息</div>
+          <div class="section-title">Shipping info</div>
           <div class="info-grid">
-            <div class="item"><span class="label">收货人：</span>{{ currentOrderVo?.order?.receiverName }}</div>
-            <div class="item"><span class="label">联系电话：</span>{{ currentOrderVo?.order?.receiverPhone }}</div>
-            <div class="item full"><span class="label">收货地址：</span>{{ currentOrderVo?.order?.receiverAddress }}</div>
+            <div class="item"><span class="label">Recipient:</span>{{ currentOrderVo?.order?.receiverName }}</div>
+            <div class="item"><span class="label">Phone:</span>{{ currentOrderVo?.order?.receiverPhone }}</div>
+            <div class="item full"><span class="label">Address:</span>{{ currentOrderVo?.order?.receiverAddress }}</div>
           </div>
 
           <div v-if="currentOrderVo?.order?.refundReason" class="refund-info">
-            <span class="label">退款理由：</span>{{ currentOrderVo.order.refundReason }}
+            <span class="label">Refund reason:</span>{{ currentOrderVo.order.refundReason }}
           </div>
 
-          <div class="section-title" style="margin-top: 25px;">商品清单</div>
+          <div class="section-title" style="margin-top: 25px;">Item list</div>
           <div class="goods-list">
             <div v-for="item in (currentOrderVo?.items || [])" :key="item.id" class="product-item">
               <el-image :src="item.mainImage" class="p-img" fit="cover" />
@@ -186,17 +186,17 @@
           </div>
 
           <div class="price-summary">
-            <div class="row"><span>商品总额：</span>¥ {{ currentOrderVo?.order?.originalTotalAmount || currentOrderVo?.order?.totalAmount }}</div>
-            <div class="row coupon"><span>优惠券抵扣：</span>- ¥ {{ currentOrderVo?.order?.couponDiscountAmount || 0 }}</div>
-            <div class="row total"><span>实付金额：</span>¥ {{ currentOrderVo?.order?.finalTotalAmount || currentOrderVo?.order?.totalAmount }}</div>
+            <div class="row"><span>Items total:</span>¥ {{ currentOrderVo?.order?.originalTotalAmount || currentOrderVo?.order?.totalAmount }}</div>
+            <div class="row coupon"><span>Coupon discount:</span>- ¥ {{ currentOrderVo?.order?.couponDiscountAmount || 0 }}</div>
+            <div class="row total"><span>Amount paid:</span>¥ {{ currentOrderVo?.order?.finalTotalAmount || currentOrderVo?.order?.totalAmount }}</div>
           </div>
         </div>
       </el-dialog>
 
-      <el-dialog v-model="reviewVisible" title="评价商品" width="500px">
+      <el-dialog v-model="reviewVisible" title="Review Product" width="500px">
         <el-form :model="reviewForm" label-width="80px">
-          <el-form-item label="选择商品" required>
-            <el-select v-model="reviewForm.productId" placeholder="请选择要评价的商品" style="width: 100%">
+          <el-form-item label="Select product" required>
+            <el-select v-model="reviewForm.productId" placeholder="Select a product to review" style="width: 100%">
               <el-option
                   v-for="item in reviewOrderItems"
                   :key="item.productId"
@@ -205,42 +205,42 @@
               />
             </el-select>
           </el-form-item>
-          <el-form-item label="评分" required>
+          <el-form-item label="Rating" required>
             <el-rate v-model="reviewForm.rating" show-text />
           </el-form-item>
-          <el-form-item label="心得体会">
+          <el-form-item label="Feedback">
             <el-input
                 v-model="reviewForm.content"
                 type="textarea"
                 :rows="4"
-                placeholder="商品质量如何？快写下你的使用感受吧！"
+                placeholder="How was the product quality? Share your experience."
                 maxlength="200"
                 show-word-limit
             />
           </el-form-item>
         </el-form>
         <template #footer>
-          <el-button @click="reviewVisible = false">取消</el-button>
-          <el-button type="primary" @click="submitReviewForm">提交评价</el-button>
+          <el-button @click="reviewVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="submitReviewForm">Submit review</el-button>
         </template>
       </el-dialog>
 
-      <el-dialog v-model="refundVisible" title="申请退款" width="450px">
+      <el-dialog v-model="refundVisible" title="Request Refund" width="450px">
         <el-form :model="refundForm" label-width="80px" label-position="top">
-          <el-alert title="退款申请提交后，商家将在 24 小时内处理" type="info" :closable="false" style="margin-bottom: 15px" />
-          <el-form-item label="退款原因" required>
-            <el-select v-model="refundForm.reason" placeholder="请选择真实原因" style="width: 100%">
-              <el-option label="拍错/多拍/不想要" value="拍错/多拍/不想要" />
-              <el-option label="缺货/断货" value="缺货/断货" />
-              <el-option label="地址/电话填写错误" value="地址/电话填写错误" />
-              <el-option label="商品质量问题" value="商品质量问题" />
-              <el-option label="其他" value="其他" />
+          <el-alert title="After submission, the merchant will process the request within 24 hours." type="info" :closable="false" style="margin-bottom: 15px" />
+          <el-form-item label="Refund reason" required>
+            <el-select v-model="refundForm.reason" placeholder="Select a valid reason" style="width: 100%">
+              <el-option label="Ordered by mistake / duplicate order / no longer needed" value="Ordered by mistake / duplicate order / no longer needed" />
+              <el-option label="Out of stock" value="Out of stock" />
+              <el-option label="Incorrect address or phone" value="Incorrect address or phone" />
+              <el-option label="Product quality issue" value="Product quality issue" />
+              <el-option label="Other" value="Other" />
             </el-select>
           </el-form-item>
         </el-form>
         <template #footer>
-          <el-button @click="refundVisible = false">暂不退款</el-button>
-          <el-button type="danger" @click="submitRefund">确认申请</el-button>
+          <el-button @click="refundVisible = false">Not now</el-button>
+          <el-button type="danger" @click="submitRefund">Submit request</el-button>
         </template>
       </el-dialog>
     </div>
@@ -254,7 +254,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import EmptyState from '@/components/EmptyState.vue'
 
-// 接口定义：确保与 Template 使用的字段一致
+// Interface definitions: keep fields aligned with the template
 interface OrderItem {
   id: number
   productId: number
@@ -307,14 +307,14 @@ const dateRange = ref<string[]>([])
 const statusFilter = ref<number | null>(null)
 const recommendedProducts = ref<any[]>([])
 
-// 详情 & 评价
+// Details & reviews
 const detailVisible = ref(false)
 const currentOrderVo = ref<OrderVO | null>(null)
 const reviewVisible = ref(false)
 const reviewOrderItems = ref<OrderItem[]>([])
 const reviewForm = reactive({ orderId: undefined, productId: undefined, rating: 5, content: '' })
 
-// 退款
+// Refund
 const refundVisible = ref(false)
 const refundForm = reactive({ orderNo: '', reason: '' })
 
@@ -328,9 +328,9 @@ const loadData = async () => {
       queryParams.startDate = ''
       queryParams.endDate = ''
     }
-    // 使用 any 绕过分页结构类型检查，或定义 PageResult 接口
+    // Use any to bypass pagination type checks or define a PageResult interface
     const res: any = await getMyOrders(queryParams)
-    // [修复] records 变量解析修复：确保 res 存在
+    // [Fix] Ensure res exists when reading records
     tableData.value = res.records || []
     total.value = res.total || 0
   } catch (e) {
@@ -393,9 +393,9 @@ const orderStepActive = computed(() => {
 
 const getStatusText = (status: number) => {
   const map: Record<number, string> = {
-    0: '待支付', 1: '待发货', 2: '已发货', 3: '已完成', 4: '已取消', 5: '售后中', 6: '已退款'
+    0: 'Pending payment', 1: 'Awaiting shipment', 2: 'Shipped', 3: 'Completed', 4: 'Cancelled', 5: 'After-sales', 6: 'Refunded'
   }
-  return map[status] || '未知'
+  return map[status] || 'Unknown'
 }
 
 const getStatusType = (status: number) => {
@@ -416,34 +416,34 @@ const handlePay = (row: Order) => {
 }
 
 const handleCancel = (row: Order) => {
-  ElMessageBox.confirm('确定要取消该订单吗? 取消后无法恢复。', '提示', {
+  ElMessageBox.confirm('Cancel this order? This action cannot be undone.', 'Confirm', {
     type: 'warning',
-    confirmButtonText: '确认取消'
+    confirmButtonText: 'Cancel order'
   }).then(async () => {
     await cancelOrder(row.orderNo)
-    ElMessage.success('订单已取消')
+    ElMessage.success('Order cancelled')
     await loadData()
   })
 }
 
 const handleReceive = (row: Order) => {
-  ElMessageBox.confirm('请确保您已收到商品且无质量问题。', '确认收货', {
+  ElMessageBox.confirm('Please confirm you received the items and they are in good condition.', 'Confirm receipt', {
     type: 'success',
-    confirmButtonText: '确认收货'
+    confirmButtonText: 'Confirm receipt'
   }).then(async () => {
     await receiveOrder(row.orderNo)
-    ElMessage.success('交易完成！')
+    ElMessage.success('Order completed!')
     await loadData()
   })
 }
 
 const handleViewDetail = async (row: Order) => {
   try {
-    // [修复] 移除冗余的局部变量 res，直接赋值给 currentOrderVo
+    // [Fix] Remove redundant local variable and assign directly
     currentOrderVo.value = await getOrderDetailByNo(row.orderNo) as unknown as OrderVO
     detailVisible.value = true
   } catch (e) {
-    ElMessage.error('获取详情失败')
+    ElMessage.error('Failed to load details')
   }
 }
 
@@ -454,14 +454,14 @@ const openRefund = (row: Order) => {
 }
 
 const submitRefund = async () => {
-  if (!refundForm.reason) return ElMessage.warning('请选择退款原因')
+  if (!refundForm.reason) return ElMessage.warning('Please select a refund reason')
   try {
     await applyRefund(refundForm)
-    ElMessage.success('申请提交成功，请等待商家审核')
+    ElMessage.success('Request submitted. Please wait for merchant review.')
     refundVisible.value = false
     await loadData()
   } catch (e) {
-    // request.ts 已处理错误
+    // request.ts handles errors
   }
 }
 
@@ -472,24 +472,24 @@ const openReviewDialog = async (row: Order) => {
   reviewForm.rating = 5
 
   try {
-    // 这里需要 res 变量来判断逻辑，故保留，与 handleViewDetail 不同
+    // We need the res variable to branch on logic, so keep it here
     const res = await getOrderDetailByNo(row.orderNo) as unknown as OrderVO
     reviewOrderItems.value = res.items || []
     if (res.items.length > 0) reviewForm.productId = res.items[0].productId as any
     reviewVisible.value = true
   } catch (e) {
-    ElMessage.error('无法加载订单商品')
+    ElMessage.error('Failed to load order items')
   }
 }
 
 const submitReviewForm = async () => {
-  if (!reviewForm.productId) return ElMessage.warning('请选择要评价的商品')
+  if (!reviewForm.productId) return ElMessage.warning('Please select a product to review')
   try {
     await submitReview(reviewForm)
-    ElMessage.success('评价发布成功！')
+    ElMessage.success('Review submitted successfully!')
     reviewVisible.value = false
   } catch (e) {
-    // 错误处理
+    // Error handling
   }
 }
 
@@ -537,7 +537,7 @@ onMounted(() => { loadRecommendations() })
 
 .pagination-box { margin-top: 20px; display: flex; justify-content: flex-end; }
 
-/* 商品预览 */
+/* Product preview */
 .order-goods-preview {
   display: flex;
   align-items: center;
@@ -590,7 +590,7 @@ onMounted(() => { loadRecommendations() })
 }
 
 
-/* 详情弹窗 */
+/* Details dialog */
 .detail-box {
   .section-title {
     font-weight: bold;

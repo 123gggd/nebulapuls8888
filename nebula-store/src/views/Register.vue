@@ -1,8 +1,8 @@
 <template>
   <div class="register-container">
     <div class="register-box">
-      <div class="title">Nebula Store 用户注册</div>
-      <div class="subtitle">创建您的个人账号，开始购物之旅</div>
+      <div class="title">Nebula Store Registration</div>
+      <div class="subtitle">Create your personal account to start shopping</div>
 
       <el-form
           :model="form"
@@ -15,7 +15,7 @@
         <el-form-item prop="username">
           <el-input
               v-model="form.username"
-              placeholder="设置用户名 (作为登录账号)"
+              placeholder="Set a username (used for sign-in)"
               :prefix-icon="User"
           />
         </el-form-item>
@@ -23,7 +23,7 @@
         <el-form-item prop="nickname">
           <el-input
               v-model="form.nickname"
-              placeholder="设置昵称 (可选)"
+              placeholder="Set a display name (optional)"
               :prefix-icon="Avatar"
           />
         </el-form-item>
@@ -31,7 +31,7 @@
         <el-form-item prop="password">
           <el-input
               v-model="form.password"
-              placeholder="设置登录密码"
+              placeholder="Set a password"
               type="password"
               show-password
               :prefix-icon="Lock"
@@ -41,7 +41,7 @@
         <el-form-item prop="confirmPassword">
           <el-input
               v-model="form.confirmPassword"
-              placeholder="确认登录密码"
+              placeholder="Confirm password"
               type="password"
               show-password
               :prefix-icon="Key"
@@ -54,12 +54,12 @@
             :loading="loading"
             @click="handleRegister"
         >
-          立即注册
+          Create Account
         </el-button>
 
         <div class="links">
-          <span class="text-gray">已有账号?</span>
-          <el-button link type="primary" @click="$router.push('/login')">直接登录</el-button>
+          <span class="text-gray">Already have an account?</span>
+          <el-button link type="primary" @click="$router.push('/login')">Sign in</el-button>
         </div>
       </el-form>
     </div>
@@ -71,7 +71,7 @@ import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { User, Lock, Avatar, Key } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { registerApi } from '@/api/store' // [修复] 使用统一 API
+import { registerApi } from '@/api/store' // [Fix] Use unified API
 
 const router = useRouter()
 const formRef = ref()
@@ -84,12 +84,12 @@ const form = reactive({
   confirmPassword: ''
 })
 
-// 自定义校验规则：确认密码
+// Custom validation: confirm password
 const validatePass2 = (rule: any, value: string, callback: any) => {
   if (value === '') {
-    callback(new Error('请再次输入密码'))
+    callback(new Error('Please confirm your password'))
   } else if (value !== form.password) {
-    callback(new Error('两次输入密码不一致!'))
+    callback(new Error('Passwords do not match!'))
   } else {
     callback()
   }
@@ -97,12 +97,12 @@ const validatePass2 = (rule: any, value: string, callback: any) => {
 
 const rules = {
   username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '长度在 3 到 20 个字符', trigger: 'blur' }
+    { required: true, message: 'Please enter a username', trigger: 'blur' },
+    { min: 3, max: 20, message: 'Length must be 3 to 20 characters', trigger: 'blur' }
   ],
   password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, message: '密码长度不能少于 6 位', trigger: 'blur' }
+    { required: true, message: 'Please enter a password', trigger: 'blur' },
+    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
   ],
   confirmPassword: [
     { validator: validatePass2, trigger: 'blur' }
@@ -116,20 +116,20 @@ const handleRegister = async () => {
     if (valid) {
       loading.value = true
       try {
-        // [修复] 调用封装好的 API，自动处理 BaseURL 和拦截器
+        // [Fix] Use the wrapped API to handle base URL and interceptors
         await registerApi({
           username: form.username,
           password: form.password,
           nickname: form.nickname
         })
 
-        ElMessage.success('注册成功，请登录')
-        // 注册成功后跳转回登录页
+        ElMessage.success('Registration successful. Please sign in.')
+        // Redirect to the login page after successful registration
         setTimeout(() => {
           router.push('/login')
         }, 1000)
       } catch (e: any) {
-        // 错误已由 request.ts 拦截器统一处理 (ElMessage.error)
+        // Errors are handled by the request.ts interceptor (ElMessage.error)
         console.error(e)
       } finally {
         loading.value = false

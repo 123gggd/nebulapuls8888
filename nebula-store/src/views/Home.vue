@@ -36,25 +36,25 @@
       </Swiper>
     </div>
 
-    <!-- 公告栏 -->
+    <!-- Announcement bar -->
     <div class="notice-bar" v-if="noticeList.length > 0">
       <el-icon color="#E6A23C" class="icon"><Bell /></el-icon>
       <div class="notice-content">
-        <span class="tag">最新</span>
+        <span class="tag">Latest</span>
         <span class="title">{{ noticeList[0].title }}</span>
       </div>
-      <el-link type="primary" @click="$router.push('/notice')">查看更多</el-link>
+      <el-link type="primary" @click="$router.push('/notice')">View all</el-link>
     </div>
 
-    <!-- 限时秒杀 (接口异常时不显示此区域) -->
+    <!-- Flash sale (hidden if API fails) -->
     <div class="section-container seckill-section" v-if="seckillList.length > 0">
       <div class="section-header">
         <div class="left">
-          <h2>⚡ 限时秒杀</h2>
-          <span class="subtitle">手慢无 · 每日精选</span>
+          <h2>⚡ Flash Sale</h2>
+          <span class="subtitle">Limited time · Daily picks</span>
         </div>
         <div class="right countdown" v-if="countdownText">
-          <span>距场次结束</span>
+          <span>Ends in</span>
           <strong>{{ countdownText }}</strong>
         </div>
       </div>
@@ -62,7 +62,7 @@
         <el-card v-for="item in seckillList" :key="item.id" :body-style="{ padding: '0px' }" shadow="hover" class="seckill-card">
           <div class="image-wrapper" @click="$router.push(`/product/${item.productId}`)">
             <el-image :src="item.mainImage" class="image" loading="lazy" />
-            <div class="discount-tag">秒杀</div>
+            <div class="discount-tag">Flash Sale</div>
           </div>
           <div class="info">
             <div class="name" :title="item.productName">{{ item.productName }}</div>
@@ -72,22 +72,22 @@
             </div>
             <div class="stock-row">
               <el-progress :percentage="getSeckillProgress(item)" :show-text="false" status="exception" />
-              <span class="stock-text">已抢 {{ getSeckillProgress(item) }}%</span>
+              <span class="stock-text">{{ getSeckillProgress(item) }}% claimed</span>
             </div>
-            <el-button type="danger" size="small" class="seckill-btn" @click="$router.push(`/product/${item.productId}`)">立即抢购</el-button>
+            <el-button type="danger" size="small" class="seckill-btn" @click="$router.push(`/product/${item.productId}`)">Shop now</el-button>
           </div>
         </el-card>
       </div>
     </div>
 
-    <!-- 猜你喜欢 -->
+    <!-- Recommended for you -->
     <div class="section-container">
       <div class="section-header">
         <div class="left">
-          <h2>✨ 猜你喜欢</h2>
-          <span class="subtitle">精选好物，值得入手</span>
+          <h2>✨ Recommended for You</h2>
+          <span class="subtitle">Curated finds worth exploring</span>
         </div>
-        <el-link type="primary" @click="$router.push('/search')">查看全部 <el-icon><ArrowRight /></el-icon></el-link>
+        <el-link type="primary" @click="$router.push('/search')">View all <el-icon><ArrowRight /></el-icon></el-link>
       </div>
 
       <div v-if="loading" class="masonry-grid">
@@ -102,23 +102,23 @@
           <div class="image-wrapper" @click="$router.push(`/product/${item.id}`)">
             <el-image :src="item.mainImage" class="image" loading="lazy" />
             <div class="hover-mask">
-              <el-button type="primary" round :icon="ShoppingCart" @click.stop="handleAddToCart(item)">加入购物车</el-button>
+              <el-button type="primary" round :icon="ShoppingCart" @click.stop="handleAddToCart(item)">Add to Cart</el-button>
             </div>
           </div>
           <div class="product-info">
             <div class="product-name" :title="item.name">{{ item.name }}</div>
-            <div class="product-subtitle">{{ item.subtitle || '暂无描述' }}</div>
+            <div class="product-subtitle">{{ item.subtitle || 'No description available' }}</div>
             <div class="bottom">
               <span class="price">
                 <small>¥</small> {{ item.price }}
               </span>
-              <span class="sales">库存: {{ item.stock }}</span>
+              <span class="sales">Stock: {{ item.stock }}</span>
             </div>
           </div>
         </el-card>
       </div>
 
-      <el-empty v-if="!loading && productList.length === 0" description="暂无商品，请在后台发布" />
+      <el-empty v-if="!loading && productList.length === 0" description="No products yet. Please publish in the admin console." />
     </div>
   </div>
 </template>
@@ -146,24 +146,24 @@ const countdownText = ref('')
 const swiperModules = [Autoplay, Pagination]
 const heroSlides = [
   {
-    badge: '年度精选',
+    badge: 'Editor’s Picks',
     title: 'Nebula Commerce 2026',
-    subtitle: '虚拟线程驱动 · 下一代购物体验',
-    cta: '立即探索',
+    subtitle: 'Virtual threads · Next-gen shopping experience',
+    cta: 'Explore now',
     theme: 'theme-a'
   },
   {
-    badge: '限时福利',
-    title: '精选好物限时直降',
-    subtitle: '每天 10 点开抢 · 领券立减',
-    cta: '查看优惠',
+    badge: 'Limited-time perks',
+    title: 'Exclusive picks, limited-time deals',
+    subtitle: 'Daily drop at 10:00 · Save with coupons',
+    cta: 'See deals',
     theme: 'theme-b'
   },
   {
-    badge: '品质保障',
-    title: '官方精选供应链',
-    subtitle: '极速发货 · 7 天无忧退换',
-    cta: '立即选购',
+    badge: 'Quality assured',
+    title: 'Officially curated supply chain',
+    subtitle: 'Fast shipping · 7-day hassle-free returns',
+    cta: 'Shop now',
     theme: 'theme-c'
   }
 ]
@@ -172,29 +172,29 @@ let countdownTimer: number | null = null
 const loadData = async () => {
   loading.value = true
 
-  // 1. 加载热销商品
+  // 1. Load top-selling products
   try {
     const pRes: any = await searchProducts({ page: 1, size: 12 })
     productList.value = pRes.records || []
   } catch (e) {
-    console.error('商品列表加载失败') // 仅打印简略信息，避免刷屏
+    console.error('Failed to load product list') // Log briefly to avoid noise
   }
 
-  // 2. 加载公告
+  // 2. Load announcements
   try {
     const nRes: any = await getNotices()
     noticeList.value = nRes || []
   } catch (e) {
-    // 公告加载失败不影响核心体验
+    // Announcement failure should not block the core experience
   }
 
-  // 3. 加载秒杀 (即使后端500也不影响主页其他内容)
+  // 3. Load flash sales (even 500s shouldn't block the homepage)
   try {
     const sRes: any = await getCurrentSeckills()
     seckillList.value = sRes || []
     initCountdown()
   } catch (e) {
-    console.warn('秒杀活动服务暂时不可用') // 降级处理
+    console.warn('Flash sale service is temporarily unavailable') // Fallback
     seckillList.value = []
   } finally {
     loading.value = false
@@ -204,15 +204,15 @@ const loadData = async () => {
 
 const handleAddToCart = async (item: any) => {
   if (!userStore.token) {
-    ElMessage.warning('请先登录')
+    ElMessage.warning('Please sign in first')
     router.push('/login')
     return
   }
   try {
     await addToCart({ productId: item.id, quantity: 1 })
-    ElMessage.success('已加入购物车')
+    ElMessage.success('Added to cart')
   } catch (e) {
-    // request.ts 已处理错误提示
+    // request.ts handles error messages
   }
 }
 

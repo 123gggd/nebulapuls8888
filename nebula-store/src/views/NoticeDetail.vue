@@ -2,15 +2,15 @@
   <div class="notice-detail-page">
     <div class="container">
       <el-breadcrumb separator="/" class="breadcrumb">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/notice' }">系统公告</el-breadcrumb-item>
-        <el-breadcrumb-item>公告详情</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/notice' }">Announcements</el-breadcrumb-item>
+        <el-breadcrumb-item>Announcement Details</el-breadcrumb-item>
       </el-breadcrumb>
 
       <el-card shadow="never" class="detail-card" v-loading="loading">
         <template #header>
           <div class="header">
-            <h2>{{ notice?.title || '公告详情' }}</h2>
+            <h2>{{ notice?.title || 'Announcement Details' }}</h2>
             <span class="time">{{ notice?.createTime || '-' }}</span>
           </div>
         </template>
@@ -18,7 +18,7 @@
         <div v-if="notice" class="content">
           {{ notice.content }}
         </div>
-        <el-empty v-else description="公告不存在或已下架" />
+        <el-empty v-else description="Announcement not found or unavailable" />
       </el-card>
     </div>
   </div>

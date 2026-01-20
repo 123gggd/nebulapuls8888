@@ -2,8 +2,8 @@
   <div class="not-found">
     <div class="content">
       <div class="code">404</div>
-      <div class="desc">抱歉，您访问的页面迷失在太空中了</div>
-      <el-button type="primary" size="large" @click="$router.push('/')">返回地球</el-button>
+      <div class="desc">Sorry, the page you are looking for is lost in space.</div>
+      <el-button type="primary" size="large" @click="$router.push('/')">Back to Earth</el-button>
     </div>
   </div>
 </template>

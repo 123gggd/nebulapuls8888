@@ -1,24 +1,24 @@
 <template>
   <div class="login-container">
     <div class="login-box">
-      <div class="title">Nebula Store 用户登录</div>
+      <div class="title">Nebula Store Sign In</div>
       <el-form :model="form" :rules="rules" ref="formRef" size="large" @keyup.enter="handleLogin">
         <el-form-item prop="username">
-          <el-input v-model="form.username" placeholder="用户名/手机号" :prefix-icon="User" />
+          <el-input v-model="form.username" placeholder="Username or phone" :prefix-icon="User" />
         </el-form-item>
         <el-form-item prop="password">
           <el-input
               v-model="form.password"
-              placeholder="密码"
+              placeholder="Password"
               type="password"
               show-password
               :prefix-icon="Lock"
           />
         </el-form-item>
-        <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin">登 录</el-button>
+        <el-button type="primary" class="login-btn" :loading="loading" @click="handleLogin">Sign In</el-button>
         <div class="links">
-          <el-button link type="primary" @click="$router.push('/register')">注册账号</el-button>
-          <el-button link @click="handleForget">忘记密码?</el-button>
+          <el-button link type="primary" @click="$router.push('/register')">Create account</el-button>
+          <el-button link @click="handleForget">Forgot password?</el-button>
         </div>
       </el-form>
     </div>
@@ -45,8 +45,8 @@ const form = reactive({
 })
 
 const rules = {
-  username: [{ required: true, message: '请输入账号', trigger: 'blur' }],
-  password: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+  username: [{ required: true, message: 'Please enter your account', trigger: 'blur' }],
+  password: [{ required: true, message: 'Please enter your password', trigger: 'blur' }]
 }
 
 const handleLogin = async () => {
@@ -56,13 +56,13 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        // [修复] 使用 userStore.login 而不是直接 axios，保持逻辑统一
-        // 任何非 200 的响应或网络错误都会在这里被 catch 捕获
+        // [Fix] Use userStore.login instead of axios directly to keep logic consistent
+        // Any non-200 response or network error will be caught here
         await userStore.login(form)
 
-        ElMessage.success('登录成功，欢迎回来')
+        ElMessage.success('Signed in successfully. Welcome back!')
 
-        // 判断是否有重定向地址
+        // Check for redirect
         const redirect = route.query.redirect as string
         if (redirect) {
           router.replace(redirect)
@@ -71,9 +71,9 @@ const handleLogin = async () => {
         }
 
       } catch (error: any) {
-        // 错误通常已经被 request.ts 拦截器弹出 ElMessage
-        // 这里仅记录日志，或者处理特定的业务逻辑
-        console.warn('登录流程中断或失败', error)
+        // Errors are usually shown by request.ts interceptors
+        // Log here for special handling if needed
+        console.warn('Sign-in flow interrupted or failed', error)
       } finally {
         loading.value = false
       }
@@ -82,7 +82,7 @@ const handleLogin = async () => {
 }
 
 const handleForget = () => {
-  ElMessage.info('请联系客服重置密码')
+  ElMessage.info('Please contact support to reset your password')
 }
 </script>
 

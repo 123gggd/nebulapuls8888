@@ -6,17 +6,17 @@ import NProgress from 'nprogress'
 import 'nprogress/nprogress.css'
 
 const service = axios.create({
-    baseURL: '/api', // Vite 代理地址
+    baseURL: '/api', // Vite proxy base URL
     timeout: 10000
 })
 
 NProgress.configure({ showSpinner: false })
 
-// 请求拦截器
+// Request interceptor
 service.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
         NProgress.start()
-        // 在函数内部获取 store，确保 pinia 已安装
+        // Get the store inside the function to ensure pinia is installed
         const userStore = useUserStore()
         if (userStore.token) {
             config.headers.Authorization = `Bearer ${userStore.token}`
@@ -29,22 +29,22 @@ service.interceptors.request.use(
     }
 )
 
-// 响应拦截器
+// Response interceptor
 service.interceptors.response.use(
     (response: AxiosResponse) => {
         NProgress.done()
-        // 后端标准响应结构: { code: 200, msg: 'success', data: ... }
+        // Backend standard response shape: { code: 200, msg: 'success', data: ... }
         const res = response.data
 
-        // 兼容处理：有些接口可能直接返回二进制流(Blob)
+        // Compatibility: some endpoints return a binary stream (Blob)
         if (response.config.responseType === 'blob') {
             return res
         }
 
         if (res.code === 200) {
-            return res.data // 直接返回数据核心部分
+            return res.data // Return core data payload directly
         } else {
-            ElMessage.error(res.msg || res.message || '系统繁忙')
+            ElMessage.error(res.msg || res.message || 'The system is busy')
             return Promise.reject(new Error(res.msg || 'Error'))
         }
     },
@@ -54,22 +54,22 @@ service.interceptors.response.use(
         const { response } = error
 
         if (response) {
-            // 401: Token 过期或未认证
+            // 401: Token expired or unauthenticated
             if (response.status === 401) {
-                // 如果当前不在登录页，才执行登出逻辑，防止死循环
+                // Only logout if we are not already on the login page to avoid loops
                 if (router.currentRoute.value.path !== '/login') {
-                    ElMessage.warning('登录状态已过期，请重新登录')
+                    ElMessage.warning('Your session has expired. Please sign in again.')
                     userStore.logout()
                 }
             } else if (response.status === 403) {
-                ElMessage.error('没有权限执行此操作')
+                ElMessage.error('You do not have permission to perform this action')
             } else if (response.status === 404) {
-                ElMessage.error('请求的资源不存在')
+                ElMessage.error('The requested resource was not found')
             } else {
-                ElMessage.error(response.data?.msg || response.data?.message || '服务器错误')
+                ElMessage.error(response.data?.msg || response.data?.message || 'Server error')
             }
         } else {
-            ElMessage.error('网络连接异常，请检查网络')
+            ElMessage.error('Network error. Please check your connection.')
         }
         return Promise.reject(error)
     }

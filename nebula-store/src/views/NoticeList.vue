@@ -2,30 +2,30 @@
   <div class="notice-page">
     <div class="container">
       <el-breadcrumb separator="/" class="breadcrumb">
-        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
-        <el-breadcrumb-item>系统公告</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
+        <el-breadcrumb-item>Announcements</el-breadcrumb-item>
       </el-breadcrumb>
 
       <el-card shadow="never" class="notice-card" v-loading="loading">
         <template #header>
-          <div style="font-weight: bold; font-size: 18px;">公告列表</div>
+          <div style="font-weight: bold; font-size: 18px;">Announcement List</div>
         </template>
 
         <div v-if="noticeList.length > 0">
           <div v-for="item in noticeList" :key="item.id" class="notice-item">
             <div class="title-row">
-              <el-tag size="small" type="warning" class="tag">通知</el-tag>
+              <el-tag size="small" type="warning" class="tag">Notice</el-tag>
               <span class="title" @click="goDetail(item.id)">{{ item.title }}</span>
               <span class="time">{{ item.createTime }}</span>
             </div>
             <div class="content">{{ item.content }}</div>
             <div class="actions">
-              <el-button link type="primary" @click="goDetail(item.id)">查看详情</el-button>
+              <el-button link type="primary" @click="goDetail(item.id)">View Details</el-button>
             </div>
           </div>
         </div>
 
-        <el-empty v-else description="暂无公告" />
+        <el-empty v-else description="No announcements yet" />
       </el-card>
     </div>
   </div>
@@ -95,8 +95,8 @@ const goDetail = (id: number) => {
     color: #606266;
     line-height: 1.6;
     font-size: 14px;
-    padding-left: 55px; // 缩进以对齐标题
-    white-space: pre-wrap; // 保留换行
+    padding-left: 55px; // Indent to align with the title
+    white-space: pre-wrap; // Preserve line breaks
   }
   .actions {
     padding-left: 55px;

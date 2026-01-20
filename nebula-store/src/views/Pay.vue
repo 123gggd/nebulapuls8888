@@ -4,11 +4,11 @@
       <el-card shadow="never" class="pay-card" v-if="orderInfo">
         <template #header>
           <div class="header">
-            <div class="title">收银台</div>
+            <div class="title">Checkout</div>
             <div class="secure-tips">
-              <span>安全支付</span>
-              <span>官方保障</span>
-              <span>极速到账</span>
+              <span>Secure payment</span>
+              <span>Official guarantee</span>
+              <span>Fast confirmation</span>
             </div>
           </div>
         </template>
@@ -17,22 +17,22 @@
           <div class="summary-banner">
             <el-icon color="#22c55e" size="50"><CircleCheckFilled /></el-icon>
             <div class="text">
-              <h3>订单提交成功！请尽快完成支付</h3>
-              <p class="order-no">{{ isTradePay ? '交易单号' : '订单号' }}：{{ orderInfo.orderNo }}</p>
-              <p class="expire-tip" v-if="isTradePay">此交易可能包含多个子订单，支付一次即可全部完成</p>
+              <h3>Order submitted successfully! Please complete payment soon.</h3>
+              <p class="order-no">{{ isTradePay ? 'Transaction ID' : 'Order No.' }}: {{ orderInfo.orderNo }}</p>
+              <p class="expire-tip" v-if="isTradePay">This transaction may include multiple sub-orders; one payment completes all.</p>
               <p class="expire-tip" v-else>
-                请在 <span class="countdown">{{ formatTime(timeLeft) }}</span> 内完成支付，否则订单将自动取消
+                Please complete payment within <span class="countdown">{{ formatTime(timeLeft) }}</span>, or the order will be cancelled automatically.
               </p>
             </div>
             <div class="amount">
-              应付金额：<span>¥ {{ orderInfo.totalAmount }}</span>
+              Amount due: <span>¥ {{ orderInfo.totalAmount }}</span>
             </div>
           </div>
           <el-progress :percentage="progressPercent" :stroke-width="6" class="timer-progress" />
 
           <div class="pay-grid">
             <div class="left-panel">
-              <div class="panel-title">选择支付方式</div>
+              <div class="panel-title">Select payment method</div>
               <div class="method-list">
                 <div
                   class="method-item"
@@ -40,7 +40,7 @@
                   @click="payType = 'wechat'"
                 >
                   <el-icon color="#09bb07" size="24"><ChatDotRound /></el-icon>
-                  微信支付
+                  WeChat Pay
                   <el-icon v-if="payType === 'wechat'" class="check"><Select /></el-icon>
                 </div>
                 <div
@@ -49,21 +49,21 @@
                   @click="payType = 'alipay'"
                 >
                   <el-icon color="#1677ff" size="24"><Wallet /></el-icon>
-                  支付宝
+                  Alipay
                   <el-icon v-if="payType === 'alipay'" class="check"><Select /></el-icon>
                 </div>
               </div>
 
               <div class="tips-card">
-                <h4>支付须知</h4>
+                <h4>Payment notes</h4>
                 <ul>
-                  <li>支付后预计 30 分钟内确认到账</li>
-                  <li>如遇问题可在订单页发起退款</li>
-                  <li>请确保支付设备网络稳定</li>
+                  <li>Payment is expected to be confirmed within 30 minutes</li>
+                  <li>If there is an issue, you can request a refund from the order page</li>
+                  <li>Please ensure a stable network connection</li>
                 </ul>
               </div>
               <el-alert
-                title="支付完成后将自动刷新订单状态，请勿重复支付。"
+                title="After payment, the order status will refresh automatically. Do not pay twice."
                 type="success"
                 show-icon
                 :closable="false"
@@ -78,7 +78,7 @@
                     <el-icon size="120" color="#333"><FullScreen /></el-icon>
                     <div class="qr-text">Nebula Pay</div>
                   </div>
-                  <p>请使用{{ payType === 'wechat' ? '微信' : '支付宝' }}扫一扫</p>
+                  <p>Please scan with {{ payType === 'wechat' ? 'WeChat' : 'Alipay' }}</p>
                   <el-button
                     type="primary"
                     size="large"
@@ -86,7 +86,7 @@
                     @click="handlePay"
                     class="pay-btn"
                   >
-                    {{ paying ? '支付处理中...' : `确认支付 ¥${orderInfo.totalAmount}` }}
+                    {{ paying ? 'Processing payment...' : `Confirm payment ¥${orderInfo.totalAmount}` }}
                   </el-button>
                 </div>
               </div>
@@ -95,8 +95,8 @@
         </div>
       </el-card>
 
-      <el-empty v-else-if="!pageLoading" description="订单不存在或已失效">
-        <el-button type="primary" @click="$router.push('/')">返回首页</el-button>
+      <el-empty v-else-if="!pageLoading" description="Order not found or expired">
+        <el-button type="primary" @click="$router.push('/')">Back to home</el-button>
       </el-empty>
     </div>
   </div>
@@ -106,7 +106,7 @@
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { payOrder, getOrderDetailByNo } from '@/api/store'
-import request from '@/utils/request' // [修复] 引入通用 request
+import request from '@/utils/request' // [Fix] Use shared request helper
 import { ElMessage } from 'element-plus'
 import { CircleCheckFilled, ChatDotRound, Wallet, FullScreen, Select } from '@element-plus/icons-vue'
 
@@ -121,7 +121,7 @@ const paying = ref(false)
 const pageLoading = ref(true)
 const orderInfo = ref<any>(null)
 const initialTime = 1800
-const timeLeft = ref(initialTime) // 30分钟倒计时
+const timeLeft = ref(initialTime) // 30-minute countdown
 let timer: any = null
 
 const isTradePay = computed(() => !!tradeNoParam)
@@ -129,12 +129,12 @@ const progressPercent = computed(() => Math.max(0, Math.min(100, (timeLeft.value
 
 const initData = async () => {
   if (!tradeNoParam && !orderNoParam) {
-    ElMessage.error('支付参数缺失')
+    ElMessage.error('Missing payment parameters')
     pageLoading.value = false
     return
   }
 
-  // 1. 聚合支付模式 (购物车合并下单)
+  // 1. Aggregated payment (checkout from cart)
   if (tradeNoParam) {
     orderInfo.value = {
       orderNo: tradeNoParam,
@@ -146,14 +146,14 @@ const initData = async () => {
     return
   }
 
-  // 2. 单订单模式 (订单列表去支付)
+  // 2. Single-order payment (from order list)
   try {
     const res: any = await getOrderDetailByNo(orderNoParam)
-    const orderData = res.order || res // 兼容不同的后端返回结构
+    const orderData = res.order || res // Handle different response shapes
 
     if (orderData) {
       if (orderData.status !== 0) {
-        ElMessage.warning('该订单状态不可支付')
+        ElMessage.warning('This order is not eligible for payment')
         router.push('/order')
         return
       }
@@ -189,19 +189,19 @@ const handlePay = async () => {
   paying.value = true
 
   try {
-    // [修复] 使用 request 工具发送请求，自动携带 Token
+    // [Fix] Use request helper to send requests with token
     if (isTradePay.value) {
-      // 假设后端有聚合支付接口，或者依然调用 payOrder (视后端实现而定)
-      // 这里演示调用通用支付接口
+      // Assume the backend has an aggregated payment API, or still use payOrder
+      // This demo calls the generic payment endpoint
       await request({ url: `/pay/trade/${orderInfo.value.orderNo}`, method: 'post' })
     } else {
       await payOrder(orderInfo.value.orderNo)
     }
 
-    ElMessage.success('支付成功！')
+    ElMessage.success('Payment successful!')
     router.replace('/order')
   } catch (e: any) {
-    // request.ts 已处理错误
+    // request.ts handles errors
   } finally {
     paying.value = false
   }

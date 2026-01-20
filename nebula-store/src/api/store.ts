@@ -2,7 +2,6 @@ import request from '@/utils/request'
 
 // --- 认证 ---
 export const loginApi = (data: any) => request({ url: '/auth/login', method: 'post', data })
-// ✅ [修复] 路径已修正为 /auth/register/user，且移除了重复定义
 export const registerApi = (data: any) => request({ url: '/auth/register/user', method: 'post', data })
 
 // --- 商品与分类 ---
@@ -45,6 +44,6 @@ export const receiveCoupon = (id: number) => request({ url: `/marketing/coupon/r
 export const getMyCoupons = () => request({ url: '/marketing/coupon/my', method: 'get' })
 export const getUsableCoupons = (params: { orderAmount: string }) => request({ url: '/marketing/coupon/usable', method: 'get', params })
 // [新增] 获取当前秒杀活动
-export const getCurrentSeckills = () => request({ url: '/marketing/seckill/current', method: 'get' })
+export const getCurrentSeckills = () => request({ url: '/marketing/portal/seckill/list', method: 'get' })
 // [Phase 13 新增] 申请退款
 export const applyRefund = (data: { orderNo: string, reason: string }) => request({ url: '/order/refund', method: 'post', data })
