@@ -2,70 +2,70 @@
   <div class="my-coupon-page">
     <el-card shadow="never" style="border-radius: 12px; min-height: 500px;">
       <template #header>
-        <div style="font-weight: bold; font-size: 18px;">My Coupons</div>
+        <div style="font-weight: bold; font-size: 18px;">我的优惠券</div>
       </template>
 
       <el-tabs v-model="activeTab">
-        <el-tab-pane label="Unused" name="unused">
+        <el-tab-pane label="未使用" name="unused">
           <div class="coupon-list">
             <div v-for="item in unusedList" :key="item.id" class="coupon-item unused">
               <div class="left">
                 <div class="amount"><small>¥</small>{{ item.amount }}</div>
-                <div class="condition">Spend ¥{{ item.minPoint }} to use</div>
+                <div class="condition">满 {{ item.minPoint }} 可用</div>
               </div>
               <div class="right">
                 <div class="info">
                   <div class="name">{{ item.name }}</div>
                   <div class="date">{{ formatTime(item.startTime) }} - {{ formatTime(item.endTime) }}</div>
                 </div>
-                <el-button type="primary" size="small" round @click="goHome">Use now</el-button>
+                <el-button type="primary" size="small" round @click="goHome">去使用</el-button>
               </div>
               <div class="circle-top"></div>
               <div class="circle-bottom"></div>
             </div>
-            <el-empty v-if="unusedList.length === 0" description="No available coupons" />
+            <el-empty v-if="unusedList.length === 0" description="暂无可用优惠券" />
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="Used" name="used">
+        <el-tab-pane label="已使用" name="used">
           <div class="coupon-list">
             <div v-for="item in usedList" :key="item.id" class="coupon-item used">
               <div class="left">
                 <div class="amount"><small>¥</small>{{ item.amount }}</div>
-                <div class="condition">Spend ¥{{ item.minPoint }} to use</div>
+                <div class="condition">满 {{ item.minPoint }} 可用</div>
               </div>
               <div class="right">
                 <div class="info">
                   <div class="name">{{ item.name }}</div>
-                  <div class="date">Used on: {{ formatTime(item.useTime) }}</div>
+                  <div class="date">使用时间：{{ formatTime(item.useTime) }}</div>
                 </div>
-                <div class="status-stamp">Used</div>
+                <div class="status-stamp">已使用</div>
               </div>
               <div class="circle-top"></div>
               <div class="circle-bottom"></div>
             </div>
-            <el-empty v-if="usedList.length === 0" description="No records" />
+            <el-empty v-if="usedList.length === 0" description="暂无记录" />
           </div>
         </el-tab-pane>
 
-        <el-tab-pane label="Expired" name="expired">
+        <el-tab-pane label="已过期" name="expired">
           <div class="coupon-list">
             <div v-for="item in expiredList" :key="item.id" class="coupon-item expired">
               <div class="left">
                 <div class="amount"><small>¥</small>{{ item.amount }}</div>
-                <div class="condition">Spend ¥{{ item.minPoint }} to use</div>
+                <div class="condition">满 {{ item.minPoint }} 可用</div>
               </div>
               <div class="right">
                 <div class="info">
                   <div class="name">{{ item.name }}</div>
-                  <div class="date">Valid until: {{ formatTime(item.endTime) }}</div>
+                  <div class="date">有效期至：{{ formatTime(item.endTime) }}</div>
                 </div>
-                <div class="status-stamp">Expired</div>
+                <div class="status-stamp">已过期</div>
               </div>
               <div class="circle-top"></div>
               <div class="circle-bottom"></div>
             </div>
-            <el-empty v-if="expiredList.length === 0" description="No records" />
+            <el-empty v-if="expiredList.length === 0" description="暂无记录" />
           </div>
         </el-tab-pane>
       </el-tabs>
@@ -86,14 +86,14 @@ interface MyCoupon {
   startTime: string
   endTime: string
   useTime?: string
-  status: number // 0: unused 1: used 2: expired
+  status: number // 0:未使用 1:已使用 2:已过期
 }
 
 const router = useRouter()
 const activeTab = ref('unused')
 const allCoupons = ref<MyCoupon[]>([])
 
-// Status 0: unused 1: used 2: expired
+// 状态 0:未使用 1:已使用 2:已过期
 const unusedList = computed(() => allCoupons.value.filter(c => c.status === 0))
 const usedList = computed(() => allCoupons.value.filter(c => c.status === 1))
 const expiredList = computed(() => allCoupons.value.filter(c => c.status === 2))
@@ -139,7 +139,7 @@ onMounted(() => {
   position: relative;
   transition: all 0.3s;
 
-  // Semicircle decorations on both sides
+  // 左右两侧半圆装饰
   .circle-top, .circle-bottom {
     position: absolute;
     width: 20px;
@@ -152,7 +152,7 @@ onMounted(() => {
   .circle-top { top: -10px; }
   .circle-bottom { bottom: -10px; }
 
-  // Left amount section
+  // 左侧金额区
   .left {
     width: 110px;
     display: flex;
@@ -167,7 +167,7 @@ onMounted(() => {
     .condition { font-size: 12px; margin-top: 5px; opacity: 0.9; }
   }
 
-  // Right info section
+  // 右侧信息区
   .right {
     flex: 1;
     padding: 15px;
@@ -182,13 +182,13 @@ onMounted(() => {
     }
   }
 
-  // Status styles: unused
+  // 状态样式: 未使用
   &.unused {
     .left { background: linear-gradient(135deg, #ff7e5f 0%, #feb47b 100%); }
     &:hover { transform: translateY(-3px); }
   }
 
-  // Status styles: used
+  // 状态样式: 已使用
   &.used {
     .left { background: #dcdfe6; color: #909399; }
     .status-stamp {
@@ -205,7 +205,7 @@ onMounted(() => {
     }
   }
 
-  // Status styles: expired
+  // 状态样式: 已过期
   &.expired {
     .left { background: #e9e9eb; color: #a8abb2; }
     .status-stamp {

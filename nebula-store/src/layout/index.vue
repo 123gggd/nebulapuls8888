@@ -10,33 +10,33 @@
           <span class="logo-text">Nebula Store</span>
         </div>
 
-        <!-- Search box -->
+        <!-- 搜索框 -->
         <div class="search-box">
           <el-input
               v-model="keyword"
-              placeholder="Search products..."
+              placeholder="搜索商品..."
               class="search-input"
               :prefix-icon="Search"
               @keyup.enter="handleSearch"
           >
             <template #append>
-              <el-button @click="handleSearch">Search</el-button>
+              <el-button @click="handleSearch">搜索</el-button>
             </template>
           </el-input>
         </div>
 
-        <!-- Menu -->
+        <!-- 菜单 -->
         <div class="menus">
-          <router-link to="/" class="nav-link" active-class="active">Home</router-link>
-          <router-link to="/coupon" class="nav-link" active-class="active">Coupon Center</router-link>
-          <router-link to="/cart" class="nav-link" active-class="active">Cart</router-link>
-          <router-link to="/order" class="nav-link" active-class="active">My Orders</router-link>
+          <router-link to="/" class="nav-link" active-class="active">首页</router-link>
+          <router-link to="/coupon" class="nav-link" active-class="active">领券中心</router-link>
+          <router-link to="/cart" class="nav-link" active-class="active">购物车</router-link>
+          <router-link to="/order" class="nav-link" active-class="active">我的订单</router-link>
 
-          <!-- Auth state -->
+          <!-- 登录状态判断 -->
           <div class="user-actions" v-if="userStore.isLoggedIn">
             <el-dropdown trigger="click">
               <span class="el-dropdown-link">
-                <!-- Show avatar first, fallback to initial -->
+                <!-- 优先显示头像，没有则显示首字母 -->
                 <el-avatar :size="30" class="avatar" :src="userStore.avatar">
                    {{ userStore.username ? userStore.username.charAt(0).toUpperCase() : 'U' }}
                 </el-avatar>
@@ -45,23 +45,23 @@
               </span>
               <template #dropdown>
                 <el-dropdown-menu>
-                  <el-dropdown-item @click="$router.push('/profile')">Profile</el-dropdown-item>
-                  <el-dropdown-item @click="$router.push('/address')">Address Book</el-dropdown-item>
-                  <el-dropdown-item @click="$router.push('/my-coupon')">My Coupons</el-dropdown-item>
-                  <el-dropdown-item divided @click="handleLogout">Sign Out</el-dropdown-item>
+                  <el-dropdown-item @click="$router.push('/profile')">个人中心</el-dropdown-item>
+                  <el-dropdown-item @click="$router.push('/address')">地址管理</el-dropdown-item>
+                  <el-dropdown-item @click="$router.push('/my-coupon')">我的优惠券</el-dropdown-item>
+                  <el-dropdown-item divided @click="handleLogout">退出登录</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
             </el-dropdown>
           </div>
           <div class="user-actions" v-else>
-            <el-button type="primary" size="small" @click="$router.push('/login')" round>Sign In / Register</el-button>
+            <el-button type="primary" size="small" @click="$router.push('/login')" round>登录 / 注册</el-button>
           </div>
         </div>
       </div>
     </div>
 
     <div class="container main-content">
-      <!-- Router outlet with a key to refresh on param changes -->
+      <!-- 路由占位符，添加 key 确保路由参数变化时组件刷新 -->
       <router-view v-slot="{ Component }">
         <transition name="fade-slide" mode="out-in">
           <component :is="Component" :key="$route.fullPath" />
@@ -70,7 +70,7 @@
     </div>
 
     <div class="footer">
-      <p>© 2026 Nebula Commerce - Lightning-fast shopping experience</p>
+      <p>© 2026 Nebula Commerce - 极速电商体验</p>
     </div>
   </div>
 </template>
@@ -93,13 +93,13 @@ const handleSearch = () => {
 }
 
 const handleLogout = () => {
-  ElMessageBox.confirm('Are you sure you want to sign out?', 'Confirm', {
-    confirmButtonText: 'Sign Out',
-    cancelButtonText: 'Cancel',
+  ElMessageBox.confirm('确定要退出登录吗?', '提示', {
+    confirmButtonText: '退出',
+    cancelButtonText: '取消',
     type: 'warning'
   }).then(() => {
     userStore.logout()
-    ElMessage.success('Signed out safely')
+    ElMessage.success('已安全退出')
   }).catch(() => {})
 }
 </script>
@@ -214,7 +214,7 @@ const handleLogout = () => {
     &:after { transform: scaleX(1); }
   }
 
-  // Active state
+  // 激活状态
   &.router-link-active, &.active {
     color: #409EFF;
     &:after { transform: scaleX(1); }
@@ -244,7 +244,7 @@ const handleLogout = () => {
 .main-content {
   flex: 1;
   padding: 36px 0 60px;
-  width: 1200px; /* Keep the content area centered with a fixed width */
+  width: 1200px; /* 确保内容区也是定宽居中 */
   margin: 0 auto;
 }
 .footer {
@@ -255,7 +255,7 @@ const handleLogout = () => {
   margin-top: auto;
 }
 
-/* Page transition */
+/* 页面切换动效 */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.25s ease, transform 0.25s ease;

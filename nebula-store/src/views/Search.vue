@@ -3,22 +3,22 @@
     <div class="container">
       <div class="search-hero">
         <div class="search-title">
-          <h2>Handpicked for You</h2>
-          <p v-if="keyword">Keyword: <span class="highlight">{{ keyword }}</span></p>
-          <p v-else>Discover more inspiration</p>
+          <h2>为你精选好物</h2>
+          <p v-if="keyword">关键词：<span class="highlight">{{ keyword }}</span></p>
+          <p v-else>探索更多灵感好物</p>
         </div>
         <div class="search-meta">
-          <span>Found <strong>{{ displayTotal }}</strong> products</span>
-          <span class="muted">Updated at {{ lastUpdated }}</span>
+          <span>共找到 <strong>{{ displayTotal }}</strong> 件商品</span>
+          <span class="muted">更新于 {{ lastUpdated }}</span>
         </div>
       </div>
 
       <div class="filter-card">
         <div class="filter-row" v-if="categoryList.length > 0">
-          <span class="label">Category:</span>
+          <span class="label">分类：</span>
           <div class="options">
             <span class="option-item" :class="{ active: !categoryId }" @click="handleCategory(undefined)">
-              All
+              全部
             </span>
             <span
               v-for="cat in categoryList"
@@ -35,21 +35,21 @@
         <el-divider style="margin: 16px 0" />
 
         <div class="filter-row">
-          <span class="label">Price:</span>
+          <span class="label">价格：</span>
           <div class="price-range">
-            <el-input-number v-model="priceMin" :min="0" :controls="false" placeholder="Min price" />
+            <el-input-number v-model="priceMin" :min="0" :controls="false" placeholder="最低价" />
             <span class="split">-</span>
-            <el-input-number v-model="priceMax" :min="0" :controls="false" placeholder="Max price" />
-            <el-button type="primary" plain size="small" @click="applyFilters">Apply</el-button>
+            <el-input-number v-model="priceMax" :min="0" :controls="false" placeholder="最高价" />
+            <el-button type="primary" plain size="small" @click="applyFilters">应用</el-button>
           </div>
 
           <div class="stock-filter">
             <el-switch v-model="inStockOnly" />
-            <span>In stock only</span>
+            <span>仅看有货</span>
           </div>
 
           <div class="rating-filter">
-            <span>Rating:</span>
+            <span>评分：</span>
             <el-rate v-model="minRating" allow-half show-score score-template="{value}+" />
           </div>
         </div>
@@ -58,15 +58,15 @@
 
         <div class="sort-row">
           <div class="sort-options">
-            <span class="label">Sort:</span>
+            <span class="label">排序：</span>
             <span class="sort-item" :class="{ active: sortType === 'default' }" @click="handleSort('default')">
-              Relevance
+              综合
             </span>
             <span class="sort-item" :class="{ active: sortType === 'sale' }" @click="handleSort('sale')">
-              Sales
+              销量
             </span>
             <span class="sort-item price-sort" :class="{ active: sortType === 'price' }" @click="handleSort('price')">
-              Price
+              价格
               <el-icon v-if="sortOrder === 'asc' && sortType === 'price'"><CaretTop /></el-icon>
               <el-icon v-else-if="sortOrder === 'desc' && sortType === 'price'"><CaretBottom /></el-icon>
               <el-icon v-else><DArrowRight style="transform: rotate(90deg)" /></el-icon>
@@ -74,16 +74,16 @@
           </div>
 
           <div class="active-filters" v-if="hasActiveFilters">
-            <el-tag v-if="keyword" closable @close="clearKeyword" class="tag">Keyword: {{ keyword }}</el-tag>
+            <el-tag v-if="keyword" closable @close="clearKeyword" class="tag">关键词：{{ keyword }}</el-tag>
             <el-tag v-if="categoryName" closable @close="handleCategory(undefined)" class="tag">
-              Category: {{ categoryName }}
+              分类：{{ categoryName }}
             </el-tag>
-            <el-tag v-if="priceMin !== null" closable @close="priceMin = null" class="tag">Min ¥{{ priceMin }}</el-tag>
-            <el-tag v-if="priceMax !== null" closable @close="priceMax = null" class="tag">Max ¥{{ priceMax }}</el-tag>
-            <el-tag v-if="inStockOnly" closable @close="inStockOnly = false" class="tag">In stock only</el-tag>
-            <el-tag v-if="minRating > 0" closable @close="minRating = 0" class="tag">Rating {{ minRating }}+</el-tag>
+            <el-tag v-if="priceMin !== null" closable @close="priceMin = null" class="tag">最低 ¥{{ priceMin }}</el-tag>
+            <el-tag v-if="priceMax !== null" closable @close="priceMax = null" class="tag">最高 ¥{{ priceMax }}</el-tag>
+            <el-tag v-if="inStockOnly" closable @close="inStockOnly = false" class="tag">仅看有货</el-tag>
+            <el-tag v-if="minRating > 0" closable @close="minRating = 0" class="tag">评分 {{ minRating }}+</el-tag>
 
-            <el-button link type="primary" size="small" @click="resetFilters">Clear filters</el-button>
+            <el-button link type="primary" size="small" @click="resetFilters">清空筛选</el-button>
           </div>
         </div>
       </div>
@@ -93,7 +93,7 @@
           <div class="img-box">
             <el-image :src="item.mainImage" fit="cover" lazy>
               <template #placeholder>
-                <div class="image-slot">Loading...</div>
+                <div class="image-slot">加载中...</div>
               </template>
             </el-image>
           </div>
@@ -101,7 +101,7 @@
             <div class="name" :title="item.name" v-html="highlightKeyword(item.name)"></div>
             <div class="price-row">
               <span class="price">¥{{ item.price }}</span>
-              <span class="sales">{{ item.sale || 0 }} purchases</span>
+              <span class="sales">{{ item.sale || 0 }} 人付款</span>
             </div>
           </div>
         </div>
@@ -117,8 +117,8 @@
 
       <EmptyState
         v-if="!loading && displayList.length === 0"
-        description="No matching products found. Try another keyword?"
-        action-text="Browse home"
+        description="未找到相关商品，换个词试试？"
+        action-text="去首页逛逛"
         action-to="/"
       >
         <template #image>
@@ -136,7 +136,7 @@
         </template>
 
         <div class="suggestions">
-          <span>Suggested keywords:</span>
+          <span>推荐关键词：</span>
           <el-button v-for="item in recommendedKeywords" :key="item" size="small" @click="searchKeyword(item)">
             {{ item }}
           </el-button>
@@ -201,7 +201,7 @@ const priceMax = ref<number | null>(null)
 const inStockOnly = ref(false)
 const minRating = ref(0)
 
-const recommendedKeywords = ['Headphones', 'Smartwatch', 'Home essentials', 'Trending styles']
+const recommendedKeywords = ['耳机', '智能手表', '家居好物', '潮流穿搭']
 
 const categoryName = computed(() => {
   if (!categoryId.value) return ''
@@ -257,7 +257,7 @@ const loadCategories = async () => {
     const res: any = await getCategoryList()
     categoryList.value = res || []
   } catch (e) {
-    console.error('Failed to load categories', e)
+    console.error('加载分类失败', e)
   }
 }
 

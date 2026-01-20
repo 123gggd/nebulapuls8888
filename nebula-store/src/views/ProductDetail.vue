@@ -1,16 +1,16 @@
 <template>
   <div class="product-detail-page">
     <div class="container">
-      <!-- Breadcrumbs -->
+      <!-- 面包屑导航 -->
       <el-breadcrumb separator="/" class="breadcrumb">
-        <el-breadcrumb-item :to="{ path: '/' }">Home</el-breadcrumb-item>
-        <el-breadcrumb-item :to="{ path: '/search' }">Products</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ product.name || 'Product Details' }}</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+        <el-breadcrumb-item :to="{ path: '/search' }">商品列表</el-breadcrumb-item>
+        <el-breadcrumb-item>{{ product.name || '商品详情' }}</el-breadcrumb-item>
       </el-breadcrumb>
 
       <el-card shadow="never" v-loading="loading" class="main-card">
         <div class="product-container">
-          <!-- Left gallery -->
+          <!-- 左侧图片 -->
           <div class="left-gallery">
             <el-image
               v-if="activeImage"
@@ -19,7 +19,7 @@
               fit="cover"
               :preview-src-list="galleryImages"
             />
-            <div v-else class="image-placeholder">No image available</div>
+            <div v-else class="image-placeholder">暂无图片</div>
 
             <div class="thumb-list" v-if="galleryImages.length > 1">
               <div
@@ -34,18 +34,18 @@
             </div>
           </div>
 
-          <!-- Right info -->
+          <!-- 右侧信息 -->
           <div class="right-info">
             <h1 class="title">{{ product.name }}</h1>
-            <p class="subtitle">{{ product.subtitle || 'No detailed description' }}</p>
+            <p class="subtitle">{{ product.subtitle || '暂无详细描述' }}</p>
 
             <div class="service-tags">
-              <span>Authentic products</span>
-              <span>Fast shipping</span>
-              <span>7-day hassle-free returns</span>
+              <span>官方正品</span>
+              <span>极速发货</span>
+              <span>7 天无忧退换</span>
             </div>
 
-            <!-- Spec selection (merged from codex) -->
+            <!-- 规格选择（合并自 codex 分支） -->
             <div class="specs-block" v-if="specEntries.length">
               <div class="spec-row" v-for="[specName, options] in specEntries" :key="specName">
                 <span class="spec-label">{{ specName }}</span>
@@ -64,7 +64,7 @@
             </div>
 
             <div class="price-box">
-              <span class="label">Price</span>
+              <span class="label">价格</span>
               <div class="price-wrap">
                 <span class="currency">¥</span>
                 <span class="price">{{ product.price }}</span>
@@ -74,16 +74,16 @@
 
             <div class="meta-info">
               <div class="meta-item">
-                <span class="label">Stock</span>
-                <span class="value">{{ product.stock }} units</span>
+                <span class="label">库存</span>
+                <span class="value">{{ product.stock }} 件</span>
               </div>
               <div class="meta-item">
-                <span class="label">Sales</span>
+                <span class="label">销量</span>
                 <span class="value">{{ product.sale || 0 }}</span>
               </div>
               <div class="meta-item">
-                <span class="label">Reviews</span>
-                <span class="value">{{ totalReviews }}</span>
+                <span class="label">评价</span>
+                <span class="value">{{ totalReviews }} 条</span>
               </div>
             </div>
 
@@ -91,30 +91,30 @@
 
             <div class="action-area">
               <div class="quantity-box">
-                <span class="label">Quantity</span>
+                <span class="label">数量</span>
                 <el-input-number v-model="quantity" :min="1" :max="product.stock" size="large" />
               </div>
 
               <div class="btn-group">
                 <el-button type="primary" size="large" :icon="ShoppingCart" @click="handleAddToCart">
-                  Add to Cart
+                  加入购物车
                 </el-button>
                 <el-button type="danger" plain size="large" :icon="Wallet" @click="handleBuyNow">
-                  Buy Now
+                  立即购买
                 </el-button>
               </div>
 
               <div class="tip-row">
-                <span>Ships within 24 hours · E-invoice available</span>
+                <span>24 小时内发货 · 支持开具电子发票</span>
               </div>
 
-              <!-- Service notes (merged from codex) -->
+              <!-- 服务说明（合并自 codex 分支） -->
               <div class="service-notice">
                 <div>
-                  <strong>Shipping:</strong> Default SF/JD Logistics, estimated 2-5 days.
+                  <strong>物流说明：</strong>默认顺丰/京东物流，预计 2-5 天送达。
                 </div>
                 <div>
-                  <strong>After-sales:</strong> 7-day hassle-free returns for quality issues.
+                  <strong>售后保障：</strong>质量问题支持 7 天无忧退换。
                 </div>
               </div>
             </div>
@@ -122,15 +122,15 @@
         </div>
       </el-card>
 
-      <!-- Details & reviews tabs -->
+      <!-- 详情与评价 Tabs -->
       <div class="detail-content">
         <el-tabs v-model="activeTab" class="product-tabs" type="border-card">
-          <el-tab-pane label="Details" name="detail">
+          <el-tab-pane label="商品详情" name="detail">
             <div class="product-desc" v-if="product.description" v-html="product.description"></div>
-            <el-empty v-else description="The seller hasn't provided details yet" />
+            <el-empty v-else description="商家暂未上传详情描述" />
           </el-tab-pane>
 
-          <el-tab-pane label="Reviews" name="review">
+          <el-tab-pane label="用户评价" name="review">
             <div v-loading="reviewsLoading" class="review-container">
               <div v-if="reviews.length > 0" class="review-list">
                 <div v-for="item in reviews" :key="item.id" class="review-item">
@@ -143,7 +143,7 @@
                       "
                     />
                     <div class="user-meta">
-                      <div class="username">{{ item.userName || 'Anonymous' }}</div>
+                      <div class="username">{{ item.userName || '匿名用户' }}</div>
                     </div>
                   </div>
                   <div class="review-content">
@@ -155,7 +155,7 @@
                   </div>
                 </div>
               </div>
-              <el-empty v-else description="No reviews yet. Be the first to review!" />
+              <el-empty v-else description="暂无评价，快来购买并发表第一条评价吧！" />
             </div>
           </el-tab-pane>
         </el-tabs>
@@ -172,7 +172,7 @@ import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/user'
 import { ShoppingCart, Wallet } from '@element-plus/icons-vue'
 
-// [Fix] Define interfaces to resolve unresolved variable
+// [修复] 定义类型接口解决 unresolved variable
 interface ProductDetail {
   id: number
   name: string
@@ -184,7 +184,7 @@ interface ProductDetail {
   description?: string
   originalPrice?: number
   subImages?: string[]
-  // Merged from codex: specs
+  // 合并自 codex：规格
   specifications?: Record<string, string[]>
   [key: string]: any
 }
@@ -213,10 +213,10 @@ const activeTab = ref('detail')
 const galleryImages = ref<string[]>([])
 const activeImage = ref('')
 
-// Merged from codex: spec selection state
+// 合并自 codex：规格选择状态
 const selectedSpecs = ref<Record<string, string>>({})
 
-// Spec entries: [[specName, options], ...]
+// 规格 entries：[[specName, options], ...]
 const specEntries = computed<[string, string[]][]>(() => {
   const specs = product.value.specifications || {}
   return Object.entries(specs).map(([key, value]) => [key, value as string[]])
@@ -233,7 +233,7 @@ const loadData = async () => {
     galleryImages.value = [res.mainImage, ...(res.subImages || [])].filter(Boolean)
     activeImage.value = galleryImages.value[0] || ''
 
-    // Initialize default specs (select the first option for each spec)
+    // 初始化默认规格（每个规格默认选第一个）
     selectedSpecs.value = {}
     specEntries.value.forEach(([specName, options]) => {
       if (options?.length) selectedSpecs.value[specName] = options[0]
@@ -242,7 +242,7 @@ const loadData = async () => {
     loadReviews(id)
   } catch (error) {
     console.error(error)
-    ElMessage.error('Product not found or unavailable')
+    ElMessage.error('商品不存在或已下架')
     router.push('/')
   } finally {
     loading.value = false
@@ -260,7 +260,7 @@ const loadReviews = async (productId: number) => {
     reviews.value = res.records || res.data || []
     totalReviews.value = res.total || 0
   } catch (e) {
-    console.error('Failed to load reviews', e)
+    console.error('加载评价失败', e)
   } finally {
     reviewsLoading.value = false
   }
@@ -268,32 +268,32 @@ const loadReviews = async (productId: number) => {
 
 const handleAddToCart = async () => {
   if (!userStore.token) {
-    ElMessage.warning('Please sign in first')
+    ElMessage.warning('请先登录后操作')
     router.push(`/login?redirect=${route.fullPath}`)
     return
   }
   try {
-    // If the backend needs spec parameters, include selectedSpecs:
+    // 如果你后端需要规格参数，可把 selectedSpecs 一起传：
     // await addToCart({ productId: product.value.id, quantity: quantity.value, specifications: selectedSpecs.value })
     await addToCart({ productId: product.value.id, quantity: quantity.value })
-    ElMessage.success('Added to cart')
+    ElMessage.success('成功加入购物车')
   } catch (e) {
-    // Errors are handled by request.ts
+    // 错误已由 request.ts 处理
   }
 }
 
 const handleBuyNow = async () => {
   if (!userStore.token) {
-    ElMessage.warning('Please sign in first')
+    ElMessage.warning('请先登录后操作')
     router.push(`/login?redirect=${route.fullPath}`)
     return
   }
   try {
-    // Same as above: include specifications if needed.
+    // 同上：如需要规格，附加 specifications: selectedSpecs.value
     await addToCart({ productId: product.value.id, quantity: quantity.value })
     router.push('/cart')
   } catch (e) {
-    // Errors are handled by request.ts
+    // 错误已由 request.ts 处理
   }
 }
 
@@ -401,7 +401,7 @@ watch(
     }
   }
 
-  /* Merged from codex: spec styles */
+  /* 合并自 codex：规格样式 */
   .specs-block {
     background: #f8fafc;
     border-radius: 12px;
@@ -513,7 +513,7 @@ watch(
       color: #94a3b8;
     }
 
-    /* Merged from codex: service note styles */
+    /* 合并自 codex：服务说明样式 */
     .service-notice {
       margin-top: 12px;
       font-size: 12px;

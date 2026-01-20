@@ -4,9 +4,9 @@
       <el-card shadow="never" class="cart-card">
         <template #header>
           <div class="card-header">
-            <span>Cart ({{ cartList.length }})</span>
+            <span>购物车 ({{ cartList.length }})</span>
             <span class="tip" v-if="cartList.length > 0">
-              <el-icon><InfoFilled /></el-icon> Prices update in real time even if items are not selected
+              <el-icon><InfoFilled /></el-icon> 即使未选中，商品价格变动也会实时更新
             </span>
           </div>
         </template>
@@ -20,7 +20,7 @@
             row-key="id"
             v-loading="loading"
         >
-          <!-- [Fix] Explicit row typing -->
+          <!-- [修复] row 显式类型 -->
           <el-table-column
               type="selection"
               width="55"
@@ -28,32 +28,32 @@
               :selectable="(row: CartItem) => row.stock > 0 && (row.status === 1 || row.status === undefined)"
           />
 
-          <el-table-column label="Product Info" min-width="400">
-            <!-- [Fix] Explicit row typing -->
+          <el-table-column label="商品信息" min-width="400">
+            <!-- [修复] row 显式类型 -->
             <template #default="{ row }: { row: CartItem }">
               <div class="product-info" @click="router.push(`/product/${row.productId}`)">
                 <el-image :src="row.mainImage" class="p-img" fit="cover" />
                 <div class="p-detail">
                   <div class="name">{{ row.productName }}</div>
                   <div class="status-tags">
-                    <el-tag v-if="row.status !== undefined && row.status !== 1" type="danger" size="small" effect="plain">Unavailable</el-tag>
-                    <el-tag v-else-if="row.stock <= 0" type="info" size="small" effect="plain">Sold out</el-tag>
-                    <el-tag v-else-if="row.stock < 10" type="warning" size="small" effect="plain">Low stock: {{ row.stock }}</el-tag>
+                    <el-tag v-if="row.status !== undefined && row.status !== 1" type="danger" size="small" effect="plain">已下架</el-tag>
+                    <el-tag v-else-if="row.stock <= 0" type="info" size="small" effect="plain">已售罄</el-tag>
+                    <el-tag v-else-if="row.stock < 10" type="warning" size="small" effect="plain">库存紧张: {{ row.stock }}</el-tag>
                   </div>
                 </div>
               </div>
             </template>
           </el-table-column>
 
-          <el-table-column prop="price" label="Unit Price" align="center" width="150">
+          <el-table-column prop="price" label="单价" align="center" width="150">
             <template #default="{ row }: { row: CartItem }">
               <span class="unit-price">¥{{ row.price }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="Quantity" align="center" width="180">
+          <el-table-column label="数量" align="center" width="180">
             <template #default="{ row }: { row: CartItem }">
-              <!-- [Fix] Explicit val typing -->
+              <!-- [修复] val 显式类型 -->
               <el-input-number
                   v-if="row.stock > 0 && (row.status === 1 || row.status === undefined)"
                   v-model="row.quantity"
@@ -62,31 +62,31 @@
                   size="small"
                   @change="(val: number | undefined) => handleQuantityChange(row, val)"
               />
-              <span v-else class="disabled-text">Unavailable</span>
+              <span v-else class="disabled-text">不可购买</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="Subtotal" align="center" width="150">
+          <el-table-column label="小计" align="center" width="150">
             <template #default="{ row }: { row: CartItem }">
               <span class="subtotal">¥{{ (row.price * row.quantity).toFixed(2) }}</span>
             </template>
           </el-table-column>
 
-          <el-table-column label="Actions" align="center" width="120">
+          <el-table-column label="操作" align="center" width="120">
             <template #default="{ row }: { row: CartItem }">
-              <el-button link type="danger" @click="handleDelete(row.id)">Remove</el-button>
+              <el-button link type="danger" @click="handleDelete(row.id)">移除</el-button>
             </template>
           </el-table-column>
         </el-table>
 
         <div class="cart-footer" v-if="cartList.length > 0">
           <div class="left-ops">
-            <el-button link @click="clearInvalid">Remove unavailable items</el-button>
+            <el-button link @click="clearInvalid">清理失效商品</el-button>
           </div>
           <div class="right-calc">
             <div class="total-info">
-              Selected <span class="count">{{ selectedCount }}</span> items,
-              Total: <span class="price"><small>¥</small> {{ totalPrice }}</span>
+              已选 <span class="count">{{ selectedCount }}</span> 件商品，
+              合计：<span class="price"><small>¥</small> {{ totalPrice }}</span>
             </div>
             <el-button
                 type="primary"
@@ -95,12 +95,12 @@
                 @click="openCheckout"
                 :disabled="selectedCount === 0"
             >
-              Checkout
+              去结算
             </el-button>
           </div>
         </div>
 
-        <EmptyState v-else description="Your cart is empty. Start shopping!" action-text="Go to home" action-to="/">
+        <EmptyState v-else description="购物车空空如也，快去逛逛吧" action-text="去首页" action-to="/">
           <template #image>
             <svg viewBox="0 0 220 160" aria-hidden="true" class="empty-illustration">
               <defs>
@@ -119,11 +119,11 @@
         </EmptyState>
       </el-card>
 
-      <!-- Checkout dialog -->
-      <el-dialog v-model="orderVisible" title="Confirm Order" width="700px" append-to-body destroy-on-close>
+      <!-- 结算弹窗 -->
+      <el-dialog v-model="orderVisible" title="确认订单" width="700px" append-to-body destroy-on-close>
         <div v-loading="checkoutLoading" class="checkout-container">
-          <!-- 1. Shipping address -->
-          <div class="section-title">Shipping Address</div>
+          <!-- 1. 收货地址 -->
+          <div class="section-title">收货地址</div>
           <div v-if="addressList.length > 0">
             <el-radio-group v-model="selectedAddressId" class="address-list">
               <el-radio border v-for="addr in addressList" :key="addr.id" :value="addr.id" class="address-item">
@@ -134,42 +134,42 @@
                 </div>
               </el-radio>
             </el-radio-group>
-            <el-button link type="primary" class="manage-addr-btn" @click="router.push('/address')">Manage addresses</el-button>
+            <el-button link type="primary" class="manage-addr-btn" @click="router.push('/address')">管理收货地址</el-button>
           </div>
-          <el-empty v-else description="No shipping address yet" :image-size="60">
-            <el-button type="primary" size="small" @click="router.push('/address')">Add an address</el-button>
+          <el-empty v-else description="暂无收货地址" :image-size="60">
+            <el-button type="primary" size="small" @click="router.push('/address')">去添加地址</el-button>
           </el-empty>
 
-          <!-- 2. Coupons -->
-          <div class="section-title" style="margin-top: 25px;">Coupons</div>
-          <el-select v-model="selectedCouponId" placeholder="Select a coupon" style="width: 100%" clearable>
+          <!-- 2. 优惠券 -->
+          <div class="section-title" style="margin-top: 25px;">优惠券</div>
+          <el-select v-model="selectedCouponId" placeholder="请选择优惠券" style="width: 100%" clearable>
             <el-option
                 v-for="item in availableCoupons"
                 :key="item.id"
-                :label="`${item.name} (Save ¥${item.amount}, spend ¥${item.minPoint} to use)`"
+                :label="`${item.name} (省 ¥${item.amount}, 满${item.minPoint}可用)`"
                 :value="item.id"
             />
           </el-select>
           <div class="coupon-tip" v-if="availableCoupons.length === 0">
-            <el-icon><InfoFilled /></el-icon> No available coupons
+            <el-icon><InfoFilled /></el-icon> 暂无可用优惠券
           </div>
 
-          <!-- 3. Amount summary -->
+          <!-- 3. 金额明细 -->
           <div class="price-summary">
-            <div class="row"><span>Items total:</span><span>¥ {{ totalPrice }}</span></div>
+            <div class="row"><span>商品总额：</span><span>¥ {{ totalPrice }}</span></div>
             <div class="row coupon-row" v-if="selectedCouponAmount > 0">
-              <span>Coupon discount:</span><span>- ¥ {{ selectedCouponAmount }}</span>
+              <span>优惠券抵扣：</span><span>- ¥ {{ selectedCouponAmount }}</span>
             </div>
             <div class="row total-row">
-              <span>Amount due:</span><span class="final-price">¥ {{ finalPrice }}</span>
+              <span>实付金额：</span><span class="final-price">¥ {{ finalPrice }}</span>
             </div>
           </div>
         </div>
 
         <template #footer>
-          <el-button @click="orderVisible = false">Cancel</el-button>
+          <el-button @click="orderVisible = false">取消</el-button>
           <el-button type="primary" @click="submitOrder" :disabled="!selectedAddressId" :loading="submitting">
-            Place Order
+            提交订单
           </el-button>
         </template>
       </el-dialog>
@@ -185,7 +185,7 @@ import { useRouter } from 'vue-router'
 import { InfoFilled } from '@element-plus/icons-vue'
 import EmptyState from '@/components/EmptyState.vue'
 
-// [Core fix] Define a clear CartItem interface
+// [核心修复] 定义明确的 CartItem 接口
 interface CartItem {
   id: number
   productId: number
@@ -195,7 +195,7 @@ interface CartItem {
   quantity: number
   stock: number
   selected: boolean
-  status?: number // 1: available, 0: unavailable
+  status?: number // 1: 上架, 0: 下架
   merchantId?: number
   [key: string]: any
 }
@@ -256,7 +256,7 @@ const loadCart = async () => {
 
     nextTick(async () => {
       if (multipleTableRef.value) {
-        // First compute rows to update
+        // 先计算需要更新的行
         const rowsToUnselect: CartItem[] = []
 
         for (const row of cartList.value) {
@@ -272,7 +272,7 @@ const loadCart = async () => {
           }
         }
 
-        // Unselect rows in batch or one by one
+        // 批量或逐个处理取消选中状态
         for (const row of rowsToUnselect) {
           try {
             await updateCart({ id: row.id, selected: false })
@@ -296,29 +296,29 @@ const handleQuantityChange = async (row: CartItem, val: number | undefined) => {
   try {
     await updateCart({ id: row.id, quantity: val })
   } catch (e) {
-    // If it fails, reload the cart to restore state
+    // 如果失败，建议重新加载购物车恢复状态
     await loadCart()
   }
 }
 
 const handleDelete = (id: number) => {
-  ElMessageBox.confirm('Remove this item from the cart?', 'Confirm', { type: 'warning' }).then(async () => {
+  ElMessageBox.confirm('确定将该商品移出购物车?', '提示', { type: 'warning' }).then(async () => {
     await deleteCartItem(id)
-    ElMessage.success('Removed')
+    ElMessage.success('已移除')
     await loadCart()
   })
 }
 
-// Remove invalid items
+// 清理无效商品
 const clearInvalid = () => {
   const invalidIds = cartList.value
       .filter(row => row.stock <= 0 || (row.status !== undefined && row.status !== 1))
       .map(row => row.id)
 
-  if (invalidIds.length === 0) return ElMessage.info('No invalid items')
+  if (invalidIds.length === 0) return ElMessage.info('暂无无效商品')
 
-  ElMessageBox.confirm(`Remove ${invalidIds.length} invalid items?`, 'Confirm').then(async () => {
-    // Delete serially to avoid concurrency issues
+  ElMessageBox.confirm(`确定清空 ${invalidIds.length} 件失效商品吗？`, '提示').then(async () => {
+    // 串行删除，防止并发问题
     for (const id of invalidIds) {
       await deleteCartItem(id)
     }
@@ -342,21 +342,21 @@ const openCheckout = async () => {
       selectedAddressId.value = undefined
     }
 
-    // Fetch available coupons
+    // 手动调用请求以获取优惠券
     const couponRes = await getUsableCoupons({ orderAmount: totalPrice.value }) as unknown as Coupon[]
 
     availableCoupons.value = couponRes || []
 
   } catch (e) {
     console.error(e)
-    ElMessage.error('Failed to load checkout info')
+    ElMessage.error('结算信息加载失败')
   } finally {
     checkoutLoading.value = false
   }
 }
 
 const submitOrder = async () => {
-  if (!selectedAddressId.value) return ElMessage.warning('Please select a shipping address')
+  if (!selectedAddressId.value) return ElMessage.warning('请选择收货地址')
 
   submitting.value = true
   const addr = addressList.value.find(item => item.id === selectedAddressId.value)
@@ -372,7 +372,7 @@ const submitOrder = async () => {
 
     const tradeNo = typeof res === 'string' ? res : (res.tradeNo || res.orderNo || res)
 
-    ElMessage.success('Order placed successfully')
+    ElMessage.success('订单提交成功')
     orderVisible.value = false
 
     router.push({

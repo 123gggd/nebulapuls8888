@@ -1,8 +1,8 @@
 <template>
   <div class="coupon-page">
     <div class="header-banner">
-      <h1>Coupon Center</h1>
-      <p>Grab coupons first, save more while you shop</p>
+      <h1>领券中心</h1>
+      <p>先领券，再购物，优惠享不停</p>
     </div>
 
     <div class="container">
@@ -13,7 +13,7 @@
               <div class="amount">
                 <small>¥</small>{{ item.amount }}
               </div>
-              <div class="condition">Spend ¥{{ item.minPoint }} to use</div>
+              <div class="condition">满 {{ item.minPoint }} 可用</div>
             </div>
             <div class="right">
               <div class="name" :title="item.name">{{ item.name }}</div>
@@ -25,7 +25,7 @@
                     :stroke-width="6"
                     :show-text="false"
                 />
-                <span class="text">{{ getPercentage(item) }}% claimed</span>
+                <span class="text">已抢 {{ getPercentage(item) }}%</span>
               </div>
               <el-button
                   type="primary"
@@ -35,14 +35,14 @@
                   :disabled="item.receiveCount >= item.publishCount"
                   @click="handleReceive(item.id)"
               >
-                {{ item.receiveCount >= item.publishCount ? 'Fully claimed' : 'Claim now' }}
+                {{ item.receiveCount >= item.publishCount ? '已抢光' : '立即领取' }}
               </el-button>
             </div>
           </div>
         </el-col>
       </el-row>
 
-      <el-empty v-if="!loading && couponList.length === 0" description="No coupons available" />
+      <el-empty v-if="!loading && couponList.length === 0" description="暂无优惠券可领" />
     </div>
   </div>
 </template>
@@ -88,16 +88,16 @@ const loadData = async () => {
 
 const handleReceive = async (id: number) => {
   if (!userStore.token) {
-    ElMessage.warning('Please sign in first')
+    ElMessage.warning('请先登录')
     router.push('/login')
     return
   }
   try {
     await receiveCoupon(id)
-    ElMessage.success('Coupon claimed successfully')
-    loadData() // Refresh list and update progress
+    ElMessage.success('领取成功')
+    loadData() // 刷新列表，更新已抢进度
   } catch (e) {
-    // Handled by interceptor
+    // 拦截器处理
   }
 }
 
