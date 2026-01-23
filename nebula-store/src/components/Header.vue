@@ -41,7 +41,7 @@ const handleLogout = () => {
           <span class="welcome">Hi, {{ user.nickname || user.username }}</span>
           <el-divider direction="vertical" />
           <el-button link @click="router.push('/order')">我的订单</el-button>
-          <el-button link @click="router.push('/user/address')">地址管理</el-button>
+          <el-button link @click="router.push('/address')">地址管理</el-button>
           <el-button link type="danger" @click="handleLogout">退出</el-button>
         </div>
 

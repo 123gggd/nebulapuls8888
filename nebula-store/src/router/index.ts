@@ -93,18 +93,15 @@ const routes: RouteRecordRaw[] = [
                 name: 'MyCoupon',
                 component: () => import('@/views/MyCoupon.vue'),
                 meta: { title: '我的优惠券', requiresAuth: true }
-            },{
-                path: '/:pathMatch(.*)*',
-                name: 'NotFound',
-                component: () => import('@/views/404.vue'),
-                meta: { title: '404' }
             }
         ]
     },
     // 404 页面
     {
         path: '/:pathMatch(.*)*',
-        redirect: '/'
+        name: 'NotFound',
+        component: () => import('@/views/404.vue'),
+        meta: { title: '404' }
     }
 ]
 
