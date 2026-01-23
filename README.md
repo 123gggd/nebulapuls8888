@@ -1,136 +1,165 @@
-Nebula Pulse E-Commerce Platform
+# 🌌 Nebula Pulse — Full‑Stack E‑Commerce Platform
 
-📖 Overview
+A **production‑grade, full‑stack e‑commerce ecosystem** designed for performance, scalability, and maintainability. This project features a robust backend API, a modern admin dashboard, and a responsive customer storefront.
 
-Nebula Pulse is a production-grade, full-stack e-commerce ecosystem designed for high performance and scalability. It features a microservices-ready architecture with a robust backend, a comprehensive admin dashboard, and a responsive customer storefront.
+It demonstrates real‑world engineering capabilities including high‑concurrency order handling, secure authentication, and clean frontend‑backend integration.
 
-This project demonstrates the ability to build complex systems handling high-concurrency orders, secure authentication, and real-time data management—core competencies for modern Full-Stack development.
+---
 
-🏗 Architecture & Modules
+## 📖 Overview
+
+Nebula Pulse is a full‑stack e‑commerce system built from scratch to reflect how modern web platforms are designed and maintained in production environments.
+
+It showcases:
+
+* Secure REST APIs for business operations
+* Role‑based authentication and authorization
+* High‑concurrency order and promotion handling
+* Admin dashboard for business management
+* Customer‑facing storefront with a complete shopping flow
+
+This project highlights the ability to design, build, debug, and optimize real web systems.
+
+---
+
+## 🏗 Architecture & Modules
 
 The repository is organized into three main monorepo modules:
 
-Module
+| Module          | Description              | Tech Stack                                                   |
+| --------------- | ------------------------ | ------------------------------------------------------------ |
+| nebula-commerce | Core Backend API         | Java, Spring Boot, MyBatis Plus, Spring Security, JWT, Redis |
+| nebula-admin    | Merchant/Admin Dashboard | Vue 3, TypeScript, Vite, Pinia, Element Plus                 |
+| nebula-store    | Customer Storefront      | Vue 3, TypeScript, Vant UI, Mobile‑First Design              |
 
-Description
+---
 
-Tech Stack
+## ✨ Key Features
 
-nebula-commerce
+### 🛡 Backend (nebula-commerce)
 
-Core Backend API
+* **High‑Performance Architecture**
+  Built with Spring Boot using a modular, layered architecture suitable for microservice evolution.
 
-Java, Spring Boot, MyBatis Plus, Spring Security, JWT
+* **Security First**
+  Implemented Spring Security with JWT (JSON Web Token) for stateless authentication and role‑based access control (RBAC).
 
-nebula-admin
+* **Data Persistence**
+  Utilizes MyBatis Plus for efficient ORM mapping, dynamic SQL, and clean data access patterns with MySQL.
 
-Merchant/Admin Dashboard
+* **Caching Strategy**
+  Integrated Redis to cache hot data (product details, sessions) to reduce database load and improve response times.
 
-Vue 3, TypeScript, Vite, Pinia, Element Plus
+* **High Concurrency Handling**
+  Optimized order processing logic to handle flash sales and high‑traffic scenarios safely, preventing overselling.
 
-nebula-store
+---
 
-Customer Storefront
+### 🖥 Admin Dashboard (nebula-admin)
 
-Vue 3, TypeScript, Vant UI, Mobile-First Design
+* **Modern SPA**
+  Developed with Vue 3 (Composition API) and TypeScript for type‑safe, maintainable frontend code.
 
-✨ Key Features
+* **State Management**
+  Uses Pinia for centralized application state management across components.
 
-🛡 Backend (nebula-commerce)
+* **Dynamic Routing**
+  Permission‑based routing (async routes) ensuring users only see authorized pages.
 
-High-Performance Architecture: Built with Spring Boot for rapid development and microservice scalability.
+* **Data Visualization**
+  Integrated charts and tables for sales monitoring and basic analytics.
 
-Security First: Implemented Spring Security with JWT (JSON Web Token) for stateless, secure stateless authentication and Role-Based Access Control (RBAC).
+---
 
-Data Persistence: Utilizes MyBatis Plus for efficient ORM and dynamic SQL handling with MySQL.
+### 🛍 Storefront (nebula-store)
 
-Caching Strategy: Integrated Redis for caching hot data (product details, sessions) to reduce DB load and improve response times.
+* **Mobile‑First Design**
+  Responsive layout optimized for mobile shopping experiences using Vant UI.
 
-High Concurrency: Optimized order processing logic to handle flash sales and high-traffic scenarios safely.
+* **Smooth UX**
+  Fast page loads powered by Vite and optimized asset bundling.
 
-🖥 Admin Dashboard (nebula-admin)
+* **Complete Shopping Flow**
+  Full user journey implementation: Browsing → Cart → Checkout → Payment Mock → Order History.
 
-Modern SPA: Developed with Vue 3 (Composition API) and TypeScript for type-safe, maintainable frontend code.
+---
 
-State Management: Uses Pinia for centralized store management across components.
+## 🚀 Getting Started
 
-Dynamic Routing: Permission-based routing (Async Routes) ensuring users only see what they are authorized to access.
+### Prerequisites
 
-Data Visualization: Integrated charts and tables for real-time sales monitoring and user analytics.
+* JDK 17+
+* Node.js 18+
+* MySQL 8.0
+* Redis
 
-🛍 Storefront (nebula-store)
+---
 
-Mobile-First Design: Responsive layout optimized for mobile shopping experiences using Vant UI.
+### Backend Setup
 
-Smooth UX: Fast page loads via Vite and optimized asset bundling.
-
-Complete Flow: Full user journey implementation: Browsing -> Cart -> Checkout -> Payment Mock -> Order History.
-
-🚀 Getting Started
-
-Prerequisites
-
-JDK 17+
-
-Node.js 18+
-
-MySQL 8.0
-
-Redis
-
-1. Backend Setup
-
+```bash
 cd nebula-commerce
-# Configure application.yml with your MySQL/Redis credentials
+
+# Configure application.yml with your MySQL and Redis credentials
 mvn clean install
 mvn spring-boot:run
+```
 
+---
 
-2. Admin Panel Setup
+### Admin Panel Setup
 
+```bash
 cd nebula-admin
 npm install
 npm run dev
+```
 
+---
 
-3. Storefront Setup
+### Storefront Setup
 
+```bash
 cd nebula-store
 npm install
 npm run dev
+```
 
+---
 
-👨‍💻 Author
+## 📸 Screenshots (Optional)
 
-Chengyang G.
-Full-Stack Engineer | Bug Fix & Feature Specialist
+Add screenshots to the `docs/` folder and reference them here for better visualization:
+
+```markdown
+![Admin Dashboard](./docs/admin-dashboard.png)
+![Storefront](./docs/storefront.png)
+```
+
+---
+
+## 👨‍💻 Author
+
+**Chengyang G.**
+Full‑Stack Engineer | Bug Fix & Feature Specialist
 
 I build complex systems and fix critical bugs in production environments.
 
-Specialties: Spring Boot, Vue 3, TypeScript, System Optimization.
+**Specialties:** Spring Boot, Vue 3, TypeScript, System Optimization
+**Experience:** 4+ years building real production systems including e‑commerce platforms and high‑concurrency applications
 
-Experience: 4+ years building real production systems including e-commerce platforms and high-concurrency applications.
+Open for contract work and full‑stack consulting.
 
-Open for contract work and full-stack consulting.
+---
+
+## 📄 License
 
 MIT License
 
 Copyright (c) 2024 Chengyang G.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
