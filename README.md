@@ -1,13 +1,14 @@
 🔥 Nebula Commerce — High-Concurrency E-Commerce Platform
 
 A production-style, full-stack e-commerce system designed to handle real-world traffic spikes and flash-sale (seckill) concurrency challenges.
-Backend APIs + Admin Dashboard + Store Frontend with end-to-end integration.
+Backend APIs + Admin Dashboard Store Frontend with end-to-end integration.
+
++<img width="618" height="254" alt="屏幕截图 2026-01-31 231854" src="https://github.com/user-attachments/assets/f0795111-b593-42ee-9613-f76d8b5861f2" />
 
 📊 Demonstrated Performance
 
 Peak Load Handling: Designed and benchmarked for flash sale concurrency.
 Goal: Stable performance under up to 10,000+ concurrent order attempts.
-(Add JMeter/Locust/Gatling report screenshots below)
 
 Performance Profiling Includes:
 
@@ -17,7 +18,8 @@ Optimized MySQL indexes and query plans
 
 Distributed lock strategies for inventory consistency
 
-(Insert your own performance chart screenshot here)
+<img width="618" height="207" alt="屏幕截图 2026-01-31 231902" src="https://github.com/user-attachments/assets/4d4db0cf-f1c4-451c-abeb-ad73bb79c2ec" />
+
 
 🚀 Key Business Problems Solved
 
@@ -51,12 +53,13 @@ JMeter Load Test	Max concurrent	10,000+ users
 Redis HIT ratio	Average	>95%
 API Latency	99th percentile	<200ms
 
-(Add screenshot & JSON logs here)
+<img width="623" height="328" alt="屏幕截图 2026-01-31 231858" src="https://github.com/user-attachments/assets/a177493d-1221-47a6-97f8-d47e1be9ade2" />
+
 
 📦 Architecture Highlights
 
 ![architecture-diagram]
-(Add simple architecture diagram: frontend → backend → Redis → DB)
+
 
 📁 Project Structure
 nebula-commerce     # Spring Boot backend
