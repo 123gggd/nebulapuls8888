@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧农业物联网环境监测可视化平台 V1.0</title>
+    <!-- 引入样式和库 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css" />
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.4.2/echarts.min.js"></script>
+    <!-- 图标 -->
+    <script src="https://unpkg.com/@element-plus/icons-vue"></script>
+
+    <style>
+        body { margin: 0; padding: 0; background: #f0f2f5; font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', sans-serif; height: 100vh; overflow: hidden; }
+
+        /* 登录页样式 */
+        .login-container { height: 100vh; background-image: linear-gradient(135deg, #1f4037 10%, #99f2c8 100%); display: flex; justify-content: center; align-items: center; }
+        .login-box { width: 400px; background: rgba(255,255,255,0.95); padding: 40px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); text-align: center; }
+        .login-title { font-size: 24px; font-weight: bold; color: #333; margin-bottom: 30px; }
+
+        /* 主布局样式 */
+        .app-wrapper { display: flex; height: 100vh; width: 100vw; }
+        .sidebar { width: 240px; background: #001529; color: #fff; display: flex; flex-direction: column; transition: width 0.3s; }
+        .logo-area { height: 60px; line-height: 60px; text-align: center; font-size: 18px; font-weight: bold; background: #002140; overflow: hidden; white-space: nowrap; }
+        .main-content { flex: 1; display: flex; flex-direction: column; background: #f0f2f5; overflow: hidden; }
+        .header { height: 60px; background: #fff; box-shadow: 0 1px 4px rgba(0,21,41,0.08); display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
+        .page-view { padding: 20px; overflow-y: auto; height: calc(100vh - 100px); }
+
+        /* 卡片通用样式 */
+        .box-card { margin-bottom: 20px; }
+        .chart-row { display: flex; gap: 20px; margin-top: 20px; }
+        .chart-box { flex: 1; background: #fff; padding: 20px; height: 350px; border-radius: 4px; }
+        .data-card { display: flex; justify-content: space-between; align-items: center; }
+        .data-num { font-size: 24px; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- 1. 登录界面 (isLogin为false时显示) -->
+    <div v-if="!isLogin" class="login-container">
+        <div class="login-box">
+            <div class="login-title">智慧农业物联网监测平台</div>
+            <el-form size="large" :model="loginForm" :rules="loginRules" ref="loginFormRef">
+                <el-form-item prop="user">
+                    <el-input v-model="loginForm.user" placeholder="管理员账号: admin" prefix-icon="User"></el-input>
+                </el-form-item>
+                <el-form-item prop="pass">
+                    <el-input v-model="loginForm.pass" type="password" placeholder="任意密码" prefix-icon="Lock" @keyup.enter="handleLogin"></el-input>
+                </el-form-item>
+                <el-button type="primary" :loading="loading" style="width: 100%; margin-top: 10px;" @click="handleLogin">登 录</el-button>
+            </el-form>
+            <div style="margin-top: 15px; font-size: 12px; color: #888;">版本号 V1.0 | 软著申请专用版</div>
+        </div>
+    </div>
+
+    <!-- 2. 系统主界面 (isLogin为true时显示) -->
+    <div v-else class="app-wrapper">
+        <!-- 左侧菜单 -->
+        <div class="sidebar">
+            <div class="logo-area">智慧农业管理系统</div>
+            <el-menu
+                    active-text-color="#409EFF"
+                    background-color="#001529"
+                    text-color="#fff"
+                    :default-active="currentMenu"
+                    style="border: none;"
+                    @select="handleMenuSelect">
+
+                <el-menu-item index="1"><el-icon><Odometer /></el-icon><span>总控驾驶舱</span></el-menu-item>
+                <el-menu-item index="2"><el-icon><Cpu /></el-icon><span>设备在线管理</span></el-menu-item>
+                <el-menu-item index="3"><el-icon><Data-Line /></el-icon><span>环境数据分析</span></el-menu-item>
+                <el-menu-item index="4"><el-icon><Setting /></el-icon><span>系统参数设置</span></el-menu-item>
+            </el-menu>
+        </div>
+
+        <!-- 右侧内容 -->
+        <div class="main-content">
+            <!-- 顶部导航 -->
+            <div class="header">
+                <div>
+                    <el-breadcrumb separator="/">
+                        <el-breadcrumb-item>首页</el-breadcrumb-item>
+                        <el-breadcrumb-item>{{ getPageTitle() }}</el-breadcrumb-item>
+                    </el-breadcrumb>
+                </div>
+                <div>
+                    <el-dropdown>
+                            <span style="cursor: pointer; display: flex; align-items: center;">
+                                <el-avatar :size="30" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png"></el-avatar>
+                                <span style="margin-left: 10px;">管理员 Admin</span>
+                            </span>
+                        <template #dropdown>
+                            <el-dropdown-menu>
+                                <el-dropdown-item @click="handleLogout">退出登录</el-dropdown-item>
+                            </el-dropdown-menu>
+                        </template>
+                    </el-dropdown>
+                </div>
+            </div>
+
+            <!-- 动态页面区域 -->
+            <div class="page-view">
+
+                <!-- 页面1: 总控驾驶舱 -->
+                <div v-if="currentMenu === '1'">
+                    <el-row :gutter="20">
+                        <el-col :span="6" v-for="item in cards" :key="item.title">
+                            <el-card shadow="hover">
+                                <div class="data-card">
+                                    <div>
+                                        <div style="color:#909399">{{item.title}}</div>
+                                        <div class="data-num" :style="{color: item.color}">{{item.num}}</div>
+                                    </div>
+                                    <el-icon :size="40" :color="item.color"><component :is="item.icon" /></el-icon>
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                    <div class="chart-row">
+                        <div class="chart-box" id="chart1"></div>
+                        <div class="chart-box" id="chart2"></div>
+                    </div>
+                </div>
+
+                <!-- 页面2: 设备管理 -->
+                <div v-if="currentMenu === '2'">
+                    <el-card>
+                        <template #header>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>设备列表管理</span>
+                                <el-button type="primary" size="small" @click="addDialogVisible = true" icon="Plus">新增设备</el-button>
+                            </div>
+                        </template>
+                        <!-- 搜索栏 -->
+                        <el-form :inline="true" size="small" :model="searchForm">
+                            <el-form-item label="设备名称">
+                                <el-input v-model="searchForm.name" placeholder="支持模糊搜索" clearable></el-input>
+                            </el-form-item>
+                            <el-form-item label="状态">
+                                <el-select v-model="searchForm.status" placeholder="全部" clearable style="width: 120px;">
+                                    <el-option label="在线" value="在线"></el-option>
+                                    <el-option label="离线" value="离线"></el-option>
+                                </el-select>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="handleSearch" icon="Search">查询</el-button>
+                                <el-button @click="resetSearch" icon="Refresh">重置</el-button>
+                            </el-form-item>
+                        </el-form>
+
+                        <!-- 表格 -->
+                        <el-table :data="paginatedData" border stripe style="width: 100%" v-loading="tableLoading">
+                            <el-table-column prop="id" label="设备ID" width="120"></el-table-column>
+                            <el-table-column prop="name" label="设备名称"></el-table-column>
+                            <el-table-column prop="location" label="安装位置"></el-table-column>
+                            <el-table-column prop="status" label="运行状态">
+                                <template #default="scope">
+                                    <el-tag :type="scope.row.status === '在线' ? 'success' : 'danger'" effect="dark">{{scope.row.status}}</el-tag>
+                                </template>
+                            </el-table-column>
+                            <el-table-column prop="lastTime" label="最后上报时间" width="180"></el-table-column>
+                            <el-table-column label="操作" width="180" align="center">
+                                <template #default="scope">
+                                    <el-button link type="primary" size="small" @click="handleView(scope.row)">查看</el-button>
+                                    <el-button link type="warning" size="small" @click="handleRestart(scope.row)">重启</el-button>
+                                    <el-popconfirm title="确定删除该设备吗？" @confirm="handleDelete(scope.row)">
+                                        <template #reference>
+                                            <el-button link type="danger" size="small">删除</el-button>
+                                        </template>
+                                    </el-popconfirm>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+
+                        <!-- 分页 -->
+                        <el-pagination
+                                background
+                                layout="total, prev, pager, next"
+                                :total="filteredDeviceList.length"
+                                :page-size="pageSize"
+                                v-model:current-page="currentPage"
+                                style="margin-top: 20px; justify-content: flex-end;">
+                        </el-pagination>
+                    </el-card>
+
+                    <!-- 新增设备弹窗 -->
+                    <el-dialog v-model="addDialogVisible" title="新增物联网设备" width="500px">
+                        <el-form :model="addForm" label-width="100px">
+                            <el-form-item label="设备名称"><el-input v-model="addForm.name" placeholder="例如：3号棚温控器"></el-input></el-form-item>
+                            <el-form-item label="安装位置"><el-input v-model="addForm.location" placeholder="例如：3号大棚-北区"></el-input></el-form-item>
+                            <el-form-item label="设备ID"><el-input v-model="addForm.id" placeholder="系统自动生成" disabled></el-input></el-form-item>
+                        </el-form>
+                        <template #footer>
+                                <span class="dialog-footer">
+                                    <el-button @click="addDialogVisible = false">取消</el-button>
+                                    <el-button type="primary" @click="saveNewDevice">确定添加</el-button>
+                                </span>
+                        </template>
+                    </el-dialog>
+
+                    <!-- 查看详情弹窗 -->
+                    <el-dialog v-model="viewDialogVisible" title="设备运行详情" width="600px">
+                        <el-descriptions :column="2" border>
+                            <el-descriptions-item label="设备ID">{{ currentDevice.id }}</el-descriptions-item>
+                            <el-descriptions-item label="设备名称">{{ currentDevice.name }}</el-descriptions-item>
+                            <el-descriptions-item label="状态">
+                                <el-tag :type="currentDevice.status === '在线' ? 'success' : 'danger'">{{ currentDevice.status }}</el-tag>
+                            </el-descriptions-item>
+                            <el-descriptions-item label="位置">{{ currentDevice.location }}</el-descriptions-item>
+                            <el-descriptions-item label="固件版本">V2.0.4 Build 20250101</el-descriptions-item>
+                            <el-descriptions-item label="信号强度">-65 dBm (优)</el-descriptions-item>
+                            <el-descriptions-item label="电池电量">98%</el-descriptions-item>
+                            <el-descriptions-item label="运行时长">3420 小时</el-descriptions-item>
+                        </el-descriptions>
+                    </el-dialog>
+                </div>
+
+                <!-- 页面3: 数据分析 -->
+                <div v-if="currentMenu === '3'">
+                    <el-card class="box-card">
+                        <el-tabs type="card" v-model="activeAnalysisTab" @tab-change="handleTabChange">
+                            <el-tab-pane label="土壤墒情分析" name="soil"></el-tab-pane>
+                            <el-tab-pane label="光照强度统计" name="light"></el-tab-pane>
+                            <el-tab-pane label="虫情测报记录" name="insect"></el-tab-pane>
+                        </el-tabs>
+                        <div class="chart-box" id="chart3" style="width: 100%; margin-top: 10px;"></div>
+                    </el-card>
+
+                    <el-card>
+                        <template #header>
+                            <span>历史数据明细</span>
+                            <el-date-picker
+                                    v-model="dateRange"
+                                    type="daterange"
+                                    range-separator="至"
+                                    start-placeholder="开始日期"
+                                    end-placeholder="结束日期"
+                                    style="float: right; margin-top: -5px;"
+                                    size="small">
+                            </el-date-picker>
+                        </template>
+                        <el-table :data="historyData" style="width: 100%" height="250" border>
+                            <el-table-column prop="date" label="采集日期" width="180"></el-table-column>
+                            <el-table-column prop="temp" label="平均温度"></el-table-column>
+                            <el-table-column prop="hum" label="平均湿度"></el-table-column>
+                            <el-table-column prop="ph" label="土壤PH值"></el-table-column>
+                            <el-table-column prop="light" label="累计光照(h)"></el-table-column>
+                            <el-table-column label="数据完整性">
+                                <template #default>
+                                    <el-progress :percentage="100" status="success"></el-progress>
+                                </template>
+                            </el-table-column>
+                        </el-table>
+                    </el-card>
+                </div>
+
+                <!-- 页面4: 系统设置 -->
+                <div v-if="currentMenu === '4'">
+                    <el-card header="系统参数配置" style="max-width: 800px;">
+                        <el-form label-width="120px" :model="settings" ref="settingsFormRef">
+                            <el-form-item label="系统名称">
+                                <el-input v-model="settings.name"></el-input>
+                            </el-form-item>
+                            <el-form-item label="数据刷新间隔">
+                                <el-input-number v-model="settings.interval" :min="1" :max="60"></el-input-number> 秒
+                            </el-form-item>
+                            <el-form-item label="开启短信预警">
+                                <el-switch v-model="settings.sms" active-text="开启" inactive-text="关闭"></el-switch>
+                            </el-form-item>
+                            <el-form-item label="预警阈值设置">
+                                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                                    <el-input v-model="settings.tempHigh" placeholder="温度上限" style="width: 150px"><template #append>℃</template></el-input>
+                                    <el-input v-model="settings.humLow" placeholder="湿度下限" style="width: 150px"><template #append>%</template></el-input>
+                                </div>
+                                <div style="font-size: 12px; color: #999;">* 当传感器数值超过此范围时触发红色报警</div>
+                            </el-form-item>
+                            <el-form-item label="数据保留天数">
+                                <el-radio-group v-model="settings.days">
+                                    <el-radio :label="30">30天</el-radio>
+                                    <el-radio :label="90">90天</el-radio>
+                                    <el-radio :label="180">半年</el-radio>
+                                </el-radio-group>
+                            </el-form-item>
+                            <el-form-item>
+                                <el-button type="primary" @click="saveSettings">保存配置</el-button>
+                                <el-button @click="resetSettings">重置默认</el-button>
+                            </el-form-item>
+                        </el-form>
+                    </el-card>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const { createApp, ref, reactive, computed, nextTick, onMounted } = Vue;
+    const app = createApp({
+        setup() {
+            const isLogin = ref(false);
+            const loading = ref(false);
+            const loginForm = reactive({ user: 'admin', pass: '' });
+            const loginRules = {
+                user: [{ required: true, message: '请输入账号', trigger: 'blur' }],
+                pass: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+            };
+            const currentMenu = ref('1');
+
+            // 系统设置
+            const settings = reactive({
+                name: '智慧农业物联网环境监测可视化平台 V1.0',
+                interval: 5,
+                sms: true,
+                days: 90,
+                tempHigh: 35,
+                humLow: 40
+            });
+
+            // 首页卡片数据
+            const cards = ref([
+                { title: '在线设备', num: '124 台', color: '#409EFF', icon: 'Monitor' },
+                { title: '今日预警', num: '3 条', color: '#F56C6C', icon: 'Bell' },
+                { title: '平均温度', num: '26.5 ℃', color: '#E6A23C', icon: 'Sunny' },
+                { title: '土壤湿度', num: '58 %', color: '#67C23A', icon: 'Odometer' },
+            ]);
+
+            // 设备管理相关数据
+            const searchForm = reactive({ name: '', status: '' });
+            const tableLoading = ref(false);
+            const currentPage = ref(1);
+            const pageSize = 5;
+            const addDialogVisible = ref(false);
+            const viewDialogVisible = ref(false);
+            const currentDevice = ref({});
+            const addForm = reactive({ name: '', location: '', id: 'IOT-' + Math.floor(Math.random()*10000) });
+
+            // 初始设备数据
+            const rawDeviceList = ref([
+                { id: 'IOT-001', name: '1号大棚温湿传感器', location: '1号大棚-东区', status: '在线', lastTime: '2026-01-26 10:00:00' },
+                { id: 'IOT-002', name: '1号大棚光照传感器', location: '1号大棚-顶部', status: '在线', lastTime: '2026-01-26 10:00:00' },
+                { id: 'IOT-003', name: '2号大棚土壤检测仪', location: '2号大棚-南区', status: '离线', lastTime: '2026-01-25 18:20:00' },
+                { id: 'IOT-004', name: '自动灌溉水阀控制', location: '总控制室', status: '在线', lastTime: '2026-01-26 09:55:00' },
+                { id: 'IOT-005', name: '室外气象站', location: '农场入口', status: '在线', lastTime: '2026-01-26 10:00:00' },
+                { id: 'IOT-006', name: '3号大棚CO2传感器', location: '3号大棚-中区', status: '在线', lastTime: '2026-01-26 09:58:00' },
+                { id: 'IOT-007', name: '水肥一体机主控', location: '泵房', status: '在线', lastTime: '2026-01-26 10:01:00' }
+            ]);
+
+            // 计算属性：过滤后的设备列表
+            const filteredDeviceList = computed(() => {
+                return rawDeviceList.value.filter(item => {
+                    const nameMatch = !searchForm.name || item.name.includes(searchForm.name);
+                    const statusMatch = !searchForm.status || item.status === searchForm.status;
+                    return nameMatch && statusMatch;
+                });
+            });
+
+            // 计算属性：分页后的数据
+            const paginatedData = computed(() => {
+                const start = (currentPage.value - 1) * pageSize;
+                const end = start + pageSize;
+                return filteredDeviceList.value.slice(start, end);
+            });
+
+            // 数据分析相关
+            const activeAnalysisTab = ref('soil');
+            const dateRange = ref([]);
+            const historyData = ref([
+                { date: '2026-01-20', temp: '24.5℃', hum: '60%', ph: '6.8', light: '11.5' },
+                { date: '2026-01-21', temp: '25.1℃', hum: '62%', ph: '6.7', light: '12.0' },
+                { date: '2026-01-22', temp: '23.8℃', hum: '58%', ph: '6.8', light: '10.8' },
+                { date: '2026-01-23', temp: '26.2℃', hum: '55%', ph: '6.9', light: '13.2' },
+                { date: '2026-01-24', temp: '22.4℃', hum: '65%', ph: '6.6', light: '9.5' },
+            ]);
+
+            // 登录逻辑
+            const handleLogin = () => {
+                if(!loginForm.user) {
+                    ElementPlus.ElMessage.error('请输入账号');
+                    return;
+                }
+                loading.value = true;
+                setTimeout(() => {
+                    loading.value = false;
+                    isLogin.value = true;
+                    ElementPlus.ElMessage.success('登录成功');
+                    setTimeout(() => initCharts(), 500);
+                }, 1000);
+            };
+
+            const handleLogout = () => {
+                ElementPlus.ElMessageBox.confirm('确定要退出系统吗?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning',
+                }).then(() => {
+                    isLogin.value = false;
+                    loginForm.pass = '';
+                    ElementPlus.ElMessage.info('已安全退出');
+                });
+            };
+
+            const handleMenuSelect = (index) => {
+                currentMenu.value = index;
+                if(index === '1') {
+                    setTimeout(() => initCharts(), 300);
+                } else if (index === '3') {
+                    setTimeout(() => handleTabChange('soil'), 300);
+                }
+            };
+
+            const getPageTitle = () => {
+                const map = {'1':'总控驾驶舱', '2':'设备在线管理', '3':'环境数据分析', '4':'系统参数设置'};
+                return map[currentMenu.value];
+            };
+
+            // 设备管理逻辑
+            const handleSearch = () => {
+                tableLoading.value = true;
+                setTimeout(() => { tableLoading.value = false; currentPage.value = 1; }, 500);
+            };
+
+            const resetSearch = () => {
+                searchForm.name = '';
+                searchForm.status = '';
+                handleSearch();
+            };
+
+            const saveNewDevice = () => {
+                if(!addForm.name || !addForm.location) {
+                    ElementPlus.ElMessage.warning('请填写完整设备信息');
+                    return;
+                }
+                rawDeviceList.value.unshift({
+                    id: addForm.id,
+                    name: addForm.name,
+                    location: addForm.location,
+                    status: '在线',
+                    lastTime: new Date().toLocaleString().replace(/\//g, "-")
+                });
+                ElementPlus.ElMessage.success('添加成功');
+                addDialogVisible.value = false;
+                addForm.name = '';
+                addForm.location = '';
+                addForm.id = 'IOT-' + Math.floor(Math.random()*10000);
+            };
+
+            const handleView = (row) => {
+                currentDevice.value = row;
+                viewDialogVisible.value = true;
+            };
+
+            const handleRestart = (row) => {
+                const loadingInstance = ElementPlus.ElLoading.service({ fullscreen: true, text: '正在远程重启设备...' });
+                setTimeout(() => {
+                    loadingInstance.close();
+                    ElementPlus.ElMessage.success(`设备 [${row.name}] 重启指令下发成功`);
+                }, 1500);
+            };
+
+            const handleDelete = (row) => {
+                rawDeviceList.value = rawDeviceList.value.filter(item => item.id !== row.id);
+                ElementPlus.ElMessage.success('设备已删除');
+            };
+
+            // 数据分析 Tab 切换
+            const handleTabChange = (name) => {
+                const chartDom = document.getElementById('chart3');
+                if (!chartDom) return;
+                // 销毁旧实例防止内存泄漏
+                echarts.dispose(chartDom);
+                const myChart = echarts.init(chartDom);
+
+                let option = {};
+                if(name === 'soil') {
+                    option = {
+                        title: { text: '近7天土壤墒情趋势' },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['PH值', '湿度(%)'] },
+                        xAxis: { data: ['周一','周二','周三','周四','周五','周六','周日'] },
+                        yAxis: [ {type:'value', name:'PH'}, {type:'value', name:'湿度'} ],
+                        series: [
+                            { name: 'PH值', type: 'line', data: [6.5, 6.8, 6.7, 6.9, 7.0, 6.6, 6.8], yAxisIndex: 0 },
+                            { name: '湿度(%)', type: 'bar', data: [55, 60, 58, 62, 65, 59, 61], yAxisIndex: 1, itemStyle: {color: '#67C23A'} }
+                        ]
+                    };
+                } else if(name === 'light') {
+                    option = {
+                        title: { text: '光照强度分布统计' },
+                        tooltip: { trigger: 'axis' },
+                        xAxis: { type: 'category', data: ['06:00', '10:00', '14:00', '18:00'] },
+                        yAxis: { type: 'value', name: 'Lux' },
+                        series: [{ data: [800, 15000, 22000, 3000], type: 'line', smooth: true, areaStyle: {}, itemStyle: {color: '#E6A23C'} }]
+                    };
+                } else {
+                    option = {
+                        title: { text: '虫情捕捉数量统计' },
+                        tooltip: {},
+                        xAxis: { data: ['东区','西区','南区','北区'] },
+                        yAxis: {},
+                        series: [{ type: 'bar', data: [12, 5, 8, 15], itemStyle: {color: '#F56C6C'} }]
+                    };
+                }
+                myChart.setOption(option);
+                // 监听窗口大小变化
+                window.addEventListener('resize', () => myChart.resize());
+            };
+
+            // 系统设置逻辑
+            const saveSettings = () => {
+                ElementPlus.ElMessage.success({
+                    message: '系统配置已保存，部分设置需重启生效',
+                    type: 'success',
+                });
+            };
+
+            const resetSettings = () => {
+                settings.interval = 5;
+                settings.sms = true;
+                settings.days = 90;
+                ElementPlus.ElMessage.info('已恢复默认设置');
+            };
+
+            // 初始化图表（简单粗暴版）
+            const initCharts = () => {
+                if (document.getElementById('chart1')) {
+                    const c1 = echarts.init(document.getElementById('chart1'));
+                    c1.setOption({
+                        title: { text: '24小时温湿度变化' },
+                        tooltip: { trigger: 'axis' },
+                        legend: { data: ['温度', '湿度'] },
+                        grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+                        xAxis: { type: 'category', boundaryGap: false, data: ['0点','4点','8点','12点','16点','20点'] },
+                        yAxis: { type: 'value' },
+                        series: [
+                            { name:'温度', type:'line', smooth: true, data:[15, 18, 22, 28, 26, 20], itemStyle:{color:'#E6A23C'} },
+                            { name:'湿度', type:'line', smooth: true, data:[80, 70, 60, 50, 65, 85], itemStyle:{color:'#409EFF'} }
+                        ]
+                    });
+                    window.addEventListener('resize', () => c1.resize());
+
+                    const c2 = echarts.init(document.getElementById('chart2'));
+                    c2.setOption({
+                        title: { text: '设备报警类型占比' },
+                        tooltip: { trigger: 'item' },
+                        legend: { bottom: '5%', left: 'center' },
+                        series: [{
+                            type: 'pie',
+                            radius: ['40%', '70%'],
+                            avoidLabelOverlap: false,
+                            itemStyle: { borderRadius: 10, borderColor: '#fff', borderWidth: 2 },
+                            label: { show: false, position: 'center' },
+                            emphasis: { label: { show: true, fontSize: 20, fontWeight: 'bold' } },
+                            data: [{value:10, name:'高温警告'}, {value:5, name:'缺水警告'}, {value:2, name:'断电警告'}, {value:20, name:'正常运行'}]
+                        }]
+                    });
+                    window.addEventListener('resize', () => c2.resize());
+                }
+            };
+
+            return {
+                isLogin, loading, loginForm, loginRules, handleLogin, handleLogout,
+                currentMenu, handleMenuSelect, cards,
+
+                // 设备
+                searchForm, paginatedData, pageSize, currentPage, tableLoading, filteredDeviceList,
+                addDialogVisible, addForm, saveNewDevice,
+                viewDialogVisible, currentDevice, handleView, handleRestart, handleDelete, handleSearch, resetSearch,
+
+                // 分析
+                activeAnalysisTab, handleTabChange, historyData, dateRange,
+
+                // 设置
+                settings, saveSettings, resetSettings,
+
+                getPageTitle
+            };
+        }
+    });
+    for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+        app.component(key, component)
+    }
+    app.use(ElementPlus);
+    app.mount('#app');
+</script>
+</body>
+</html>

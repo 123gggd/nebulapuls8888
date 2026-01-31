@@ -3,7 +3,7 @@ package com.nebula.commerce.infrastructure.config;
 import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
-import com.nebula.commerce.infrastructure.mybatis.DataScopeInterceptor;
+import com.nebula.commerce.infrastructure.config.mybatis.DataScopeInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

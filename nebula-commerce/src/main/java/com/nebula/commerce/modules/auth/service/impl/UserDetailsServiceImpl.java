@@ -1,4 +1,4 @@
-package com.nebula.commerce.modules.auth.service;
+package com.nebula.commerce.modules.auth.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.nebula.commerce.infrastructure.security.LoginUser;

@@ -22,6 +22,7 @@ export const createOrder = (data: any) => request({ url: '/order/create', method
 export const getMyOrders = (params: any) => request({ url: '/order/list', method: 'get', params })
 export const getOrderDetailByNo = (orderNo: string) => request({ url: `/order/detail/${orderNo}`, method: 'get' })
 export const payOrder = (orderNo: string) => request({ url: `/pay/order/${orderNo}`, method: 'post' })
+export const getTradePayDetail = (tradeNo: string) => request({ url: `/pay/trade/${tradeNo}`, method: 'get' })
 export const receiveOrder = (orderNo: string) => request({ url: `/order/receive/${orderNo}`, method: 'post' })
 export const cancelOrder = (orderNo: string) => request({ url: `/order/cancel/${orderNo}`, method: 'post' })
 

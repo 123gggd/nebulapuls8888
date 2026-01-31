@@ -162,9 +162,7 @@ public class MarketingServiceImpl implements MarketingService {
             if (now.isAfter(uc.getEndTime())) return false;
             if (now.isBefore(uc.getStartTime())) return false;
             // 排除金额不满足
-            if (orderAmount.compareTo(uc.getMinPoint()) < 0) return false;
-
-            return true;
+            return orderAmount.compareTo(uc.getMinPoint()) >= 0;
         }).collect(Collectors.toList());
     }
 

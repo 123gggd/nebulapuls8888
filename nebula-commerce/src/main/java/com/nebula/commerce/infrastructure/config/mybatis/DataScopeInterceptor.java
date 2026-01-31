@@ -1,7 +1,6 @@
-package com.nebula.commerce.infrastructure.mybatis;
+package com.nebula.commerce.infrastructure.config.mybatis;
 
 import com.baomidou.mybatisplus.extension.plugins.inner.TenantLineInnerInterceptor;
-import com.nebula.commerce.infrastructure.config.mybatis.DataScopeHandler;
 import org.springframework.stereotype.Component;
 
 /**

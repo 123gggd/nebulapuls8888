@@ -28,6 +28,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -116,14 +117,96 @@ public class OrderAdminController {
 
     // 导出功能保持不变 (View Only)
     @GetMapping("/export")
-    public void export(HttpServletResponse response) {
-        // ... (保持原有的导出逻辑) ...
-        // 为节省篇幅，此处省略，逻辑与之前一致，仅需确保 getMerchantIdFilter 存在
-        try (ExcelWriter writer = ExcelUtil.getWriter();
-             ServletOutputStream out = response.getOutputStream()) {
-            // ...
+    public void export(HttpServletResponse response,
+                       @RequestParam(required = false) String orderNo,
+                       @RequestParam(required = false) Integer status) {
+
+        LambdaQueryWrapper<Order> wrapper = new LambdaQueryWrapper<>();
+
+        Long merchantId = getMerchantIdFilter();
+        if (merchantId != null) {
+            wrapper.eq(Order::getMerchantId, merchantId);
+        }
+
+        if (StringUtils.isNotBlank(orderNo)) {
+            wrapper.eq(Order::getOrderNo, orderNo);
+        }
+        if (status != null) {
+            if (status == 5) {
+                wrapper.in(Order::getStatus, 5, 6);
+            } else {
+                wrapper.eq(Order::getStatus, status);
+            }
+        }
+        wrapper.orderByDesc(Order::getCreateTime);
+
+        List<Order> orders = orderMapper.selectList(wrapper);
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        for (Order order : orders) {
+            checkPermission(order);
+
+            List<OrderItem> items = orderItemMapper.selectList(
+                    new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, order.getId())
+            );
+            if (items == null || items.isEmpty()) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("订单号", order.getOrderNo());
+                row.put("交易号", order.getTradeNo());
+                row.put("商家ID", order.getMerchantId());
+                row.put("用户ID", order.getUserId());
+                row.put("状态", order.getStatus());
+                row.put("实付金额", order.getTotalAmount());
+                row.put("收货人", order.getReceiverName());
+                row.put("手机号", order.getReceiverPhone());
+                row.put("地址", order.getReceiverAddress());
+                row.put("商品ID", null);
+                row.put("商品名", null);
+                row.put("单价", null);
+                row.put("数量", null);
+                row.put("小计", null);
+                row.put("创建时间", order.getCreateTime());
+                rows.add(row);
+                continue;
+            }
+
+            for (OrderItem item : items) {
+                Map<String, Object> row = new LinkedHashMap<>();
+                row.put("订单号", order.getOrderNo());
+                row.put("交易号", order.getTradeNo());
+                row.put("商家ID", order.getMerchantId());
+                row.put("用户ID", order.getUserId());
+                row.put("状态", order.getStatus());
+                row.put("实付金额", order.getTotalAmount());
+                row.put("收货人", order.getReceiverName());
+                row.put("手机号", order.getReceiverPhone());
+                row.put("地址", order.getReceiverAddress());
+                row.put("商品ID", item.getProductId());
+                row.put("商品名", item.getProductName());
+                row.put("单价", item.getCurrentUnitPrice());
+                row.put("数量", item.getQuantity());
+                row.put("小计", item.getTotalPrice());
+                row.put("创建时间", order.getCreateTime());
+                rows.add(row);
+            }
+        }
+
+        String fileName = "orders_" + DateUtil.format(DateUtil.date(), "yyyyMMddHHmmss") + ".xlsx";
+        try {
+            response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            response.setCharacterEncoding("UTF-8");
+            response.setHeader(
+                    "Content-Disposition",
+                    "attachment;filename*=UTF-8''" + URLEncoder.encode(fileName, StandardCharsets.UTF_8)
+            );
+
+            try (ExcelWriter writer = ExcelUtil.getWriter(true);
+                 ServletOutputStream out = response.getOutputStream()) {
+                writer.write(rows, true);
+                writer.flush(out, true);
+            }
         } catch (IOException e) {
-            // ...
+            throw new RuntimeException("导出失败: " + e.getMessage(), e);
         }
     }
 

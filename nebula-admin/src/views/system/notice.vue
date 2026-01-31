@@ -94,6 +94,8 @@ import { getNoticeList, saveNotice, deleteNotice } from '@/api/system'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Search, Plus } from '@element-plus/icons-vue'
 
+const ENABLE_MOCK = import.meta.env.VITE_ENABLE_MOCK === 'true'
+
 // --- Mock 数据 (后端挂了也能看) ---
 const MOCK_DATA = [
   { id: 1, title: '系统维护通知', content: '系统将于今晚24:00进行升级维护，预计耗时2小时，请提前做好准备。', sort: 1, status: 1, createTime: '2026-01-01 10:00:00' },
@@ -138,9 +140,15 @@ const loadData = async () => {
       throw new Error('API 数据格式异常')
     }
   } catch (e) {
-    console.warn('API 请求失败或权限不足，自动切换为 Mock 数据演示', e)
-    tableData.value = MOCK_DATA
-    total.value = MOCK_DATA.length
+    if (ENABLE_MOCK) {
+      console.warn('API 请求失败或权限不足，自动切换为 Mock 数据演示', e)
+      tableData.value = MOCK_DATA
+      total.value = MOCK_DATA.length
+    } else {
+      tableData.value = []
+      total.value = 0
+      ElMessage.error('公告数据加载失败')
+    }
   } finally {
     loading.value = false
   }
@@ -177,7 +185,11 @@ const handleDelete = (row: any) => {
       await deleteNotice(row.id)
       ElMessage.success('删除成功')
     } catch (e) {
-      ElMessage.success('删除成功 (演示)') // API失败时的兜底反馈
+      if (ENABLE_MOCK) {
+        ElMessage.success('删除成功 (演示)')
+      } else {
+        ElMessage.error('删除失败')
+      }
     }
     loadData()
   })
@@ -193,7 +205,12 @@ const submitForm = async () => {
     await saveNotice(form)
     ElMessage.success(form.id ? '更新成功' : '发布成功')
   } catch (e) {
-    ElMessage.success(form.id ? '更新成功 (演示)' : '发布成功 (演示)') // API失败时的兜底反馈
+    if (ENABLE_MOCK) {
+      ElMessage.success(form.id ? '更新成功 (演示)' : '发布成功 (演示)')
+    } else {
+      ElMessage.error(form.id ? '更新失败' : '发布失败')
+      return
+    }
   }
 
   dialogVisible.value = false

@@ -105,7 +105,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { payOrder, getOrderDetailByNo } from '@/api/store'
+import { payOrder, getOrderDetailByNo, getTradePayDetail } from '@/api/store'
 import request from '@/utils/request' // [修复] 引入通用 request
 import { ElMessage } from 'element-plus'
 import { CircleCheckFilled, ChatDotRound, Wallet, FullScreen, Select } from '@element-plus/icons-vue'
@@ -114,7 +114,6 @@ const route = useRoute()
 const router = useRouter()
 const tradeNoParam = route.query.tradeNo as string
 const orderNoParam = route.query.orderNo as string
-const amountParam = route.query.amount as string
 
 const payType = ref('wechat')
 const paying = ref(false)
@@ -136,13 +135,24 @@ const initData = async () => {
 
   // 1. 聚合支付模式 (购物车合并下单)
   if (tradeNoParam) {
-    orderInfo.value = {
-      orderNo: tradeNoParam,
-      totalAmount: amountParam || '0.00',
-      status: 0
+    try {
+      const detail: any = await getTradePayDetail(tradeNoParam)
+      if (detail?.payable === false) {
+        ElMessage.warning('该交易状态不可支付')
+        router.push('/order')
+        return
+      }
+      orderInfo.value = {
+        orderNo: detail?.tradeNo || tradeNoParam,
+        totalAmount: detail?.totalAmount ?? '0.00',
+        status: detail?.paid ? 1 : 0
+      }
+      startTimer()
+    } catch (e) {
+      console.error(e)
+    } finally {
+      pageLoading.value = false
     }
-    startTimer()
-    pageLoading.value = false
     return
   }
 

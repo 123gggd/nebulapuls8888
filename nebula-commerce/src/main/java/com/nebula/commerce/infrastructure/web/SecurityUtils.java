@@ -30,7 +30,6 @@ public class SecurityUtils {
         if (authentication == null || !authentication.isAuthenticated()) {
             return null;
         }
-        Object principal = authentication.getPrincipal();
         try {
             // Spring Security 的 Principal 通常是 UserDetails 实现或字符串
             // 这里我们需要确保 UserDetails 实现中有获取 ID 的方法，或者通过 Username 查库

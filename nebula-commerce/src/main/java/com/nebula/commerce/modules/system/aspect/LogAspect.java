@@ -11,7 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.reflect.MethodSignature;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -48,7 +47,6 @@ public class LogAspect {
 
     private void saveLog(ProceedingJoinPoint point, Log logAnno, long time) {
         // 1. 获取方法签名和请求
-        MethodSignature signature = (MethodSignature) point.getSignature();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
 
         SysLog sysLog = new SysLog();
